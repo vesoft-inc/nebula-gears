@@ -1,0 +1,29 @@
+#! /bin/bash
+
+if [[ $# -nt 2 ]]
+then
+    echo "$0 <core file> <path>"
+    exit 1
+fi
+
+if [[ ! -f $1 ]]
+then
+    echo "$1: No such file"
+    exit 1
+fi
+
+execname=$($(dirname $0)/core-execname $1)
+
+if [[ ! -f $execname ]]
+then
+    echo "$execname: No such file"
+    exit 1
+fi
+
+mkdir -p $2
+if [[ $? -ne 0 ]]
+then
+    exit 1
+fi
+
+mv $1 $2 && cp $execname $2

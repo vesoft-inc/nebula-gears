@@ -12,11 +12,28 @@ corefile=
 [[ $# -eq 2 ]] && execname=$1 corefile=$2
 [[ $# -eq 1 ]] && execname=$($(dirname $0)/core-execname $1) corefile=$1
 
-if [[ $execname == "" ]]
+if [[ ! -f $corefile ]]
 then
-    echo "$execname: No such file"
+    echo "$corefile: No such file"
     exit 1
 fi
+
+coredir=$(dirname $corefile)
+
+if [[ ! -f $execname ]]
+then
+    # The executable no longer exists in the original path,
+    # try to find it in the core file dir
+    if [[ ! -f $coredir/$(basename $execname) ]]
+    then
+        echo "$execname: No such file"
+        exit 1
+    else
+        execname=$coredir/$(basename $execname)
+    fi
+fi
+
+# TODO To make sure the build-id matches
 
 function is_tty {
     [[ -t 1 ]] && [[ -t 2 ]]

@@ -5,6 +5,7 @@ install(
         core-execname
         core-bt
         core-bt-batch
+        core-save-to
     PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE
