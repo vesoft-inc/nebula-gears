@@ -6,6 +6,7 @@ install(
         core-bt
         core-bt-batch
         core-save-to
+        pthreads
     PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE

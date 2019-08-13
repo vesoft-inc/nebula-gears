@@ -1,0 +1,56 @@
+#! /bin/bash
+
+if [[ $# -ne 1 ]]
+then
+    echo "$0 <pid>"
+    exit 1
+fi
+
+pid=$1
+
+if [[ ! -d /proc/$pid ]]
+then
+    echo "No such process: $pid"
+    exit 1
+fi
+tids=$(cd /proc/$pid/task && ls -d [1-9]*)
+
+ticks_per_sec=100
+if hash getconf &>/dev/null
+then
+    ticks_per_sec=$(getconf CLK_TCK)
+fi
+
+function format_ticks() {
+    local minutes=$(($1 / $ticks_per_sec / 60))
+    local seconds=$(($1 / $ticks_per_sec % 60))
+    local subseconds=$((($1 % $ticks_per_sec) * 100 / $ticks_per_sec))
+    printf "%d:%02d.%02d\n" $minutes $seconds $subseconds
+}
+
+function format_number() {
+    if [[ ${#1} -ge 8 ]]
+    then
+        echo $(($1 / 1000000))m
+    elif [[ ${#1} -gt 5 ]]
+    then
+        echo $(($1 / 1000))k
+    else
+        echo $1
+    fi
+}
+
+printf "%-8s%16s%8s%8s%8s%12s%12s%12s%12s\n" \
+           "Thread" "Name" "Status" "Minor" "Major" "utime" "stime" "time" "iotime"
+
+for tid in $tids
+do
+    stat=$(cat /proc/$pid/task/$tid/stat)
+    [[ $stat =~ ^.*\((.*)\) ]] && name=${BASH_REMATCH[1]}
+    [[ $stat =~ ^.*\(.*\)(.*) ]] && stat=${BASH_REMATCH[1]}
+    read status minflt majflt utime stime wchan iotime < <( a=($stat); echo ${a[0]} ${a[7]} ${a[9]} ${a[11]} ${a[12]} ${a[32]} ${a[39]} )
+    time=$(($stime + $utime))
+    printf "%-8d%16s%8s%8s%8s%12s%12s%12s%12s\n" \
+        $tid "$name" "$status" "$(format_number $minflt)" "$(format_number $majflt)" \
+        "$(format_ticks $utime)" "$(format_ticks $stime)" "$(format_ticks $time)" "$(format_ticks $iotime)"
+done
