@@ -58,8 +58,9 @@ Packager        : $USER
 License         : BSD
 Vendor          : VEsoft Inc.
 Group           : Development/Libraries
+BuildArch       : noarch
 Prefix          : %{_prefix}
-Release         : 1%{?dist}
+Release         : 1
 Provides        : nebula.gdb,pthreads,syscheck,sodag
 Source          : %{name}.tgz
 Version         : %{version}
