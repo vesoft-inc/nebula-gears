@@ -2,7 +2,7 @@
 
 if [[ ( $# -gt 2 ) || ( $# -eq 0 ) ]]
 then
-    echo "$0 [executable] <core file>"
+    >&2 echo "$0 [executable] <core file>"
     exit 1
 fi
 
@@ -14,7 +14,7 @@ corefile=
 
 if [[ ! -f $corefile ]]
 then
-    echo "$corefile: No such file"
+    >&2 echo "$corefile: No such file"
     exit 1
 fi
 
@@ -26,7 +26,7 @@ then
     # try to find it in the core file dir
     if [[ ! -f $coredir/$(basename $execname) ]]
     then
-        echo "$execname: No such file"
+        >&2 echo "$execname: No such file"
         exit 1
     else
         execname=$coredir/$(basename $execname)

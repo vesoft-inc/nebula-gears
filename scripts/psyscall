@@ -1,0 +1,382 @@
+#! /bin/bash
+
+if [[ $# -eq 0 ]]
+then
+    >&2 echo "$0 <sysnum>..."
+    >&2 echo "$0 list"
+    exit 1
+fi
+
+declare -A syscalls
+
+syscalls[0]=read
+syscalls[1]=write
+syscalls[2]=open
+syscalls[3]=close
+syscalls[4]=stat
+syscalls[5]=fstat
+syscalls[6]=lstat
+syscalls[7]=poll
+syscalls[8]=lseek
+syscalls[9]=mmap
+syscalls[10]=mprotect
+syscalls[11]=munmap
+syscalls[12]=brk
+syscalls[13]=rt_sigaction
+syscalls[14]=rt_sigprocmask
+syscalls[15]=rt_sigreturn
+syscalls[16]=ioctl
+syscalls[17]=pread64
+syscalls[18]=pwrite64
+syscalls[19]=readv
+syscalls[20]=writev
+syscalls[21]=access
+syscalls[22]=pipe
+syscalls[23]=select
+syscalls[24]=sched_yield
+syscalls[25]=mremap
+syscalls[26]=msync
+syscalls[27]=mincore
+syscalls[28]=madvise
+syscalls[29]=shmget
+syscalls[30]=shmat
+syscalls[31]=shmctl
+syscalls[32]=dup
+syscalls[33]=dup2
+syscalls[34]=pause
+syscalls[35]=nanosleep
+syscalls[36]=getitimer
+syscalls[37]=alarm
+syscalls[38]=setitimer
+syscalls[39]=getpid
+syscalls[40]=sendfile
+syscalls[41]=socket
+syscalls[42]=connect
+syscalls[43]=accept
+syscalls[44]=sendto
+syscalls[45]=recvfrom
+syscalls[46]=sendmsg
+syscalls[47]=recvmsg
+syscalls[48]=shutdown
+syscalls[49]=bind
+syscalls[50]=listen
+syscalls[51]=getsockname
+syscalls[52]=getpeername
+syscalls[53]=socketpair
+syscalls[54]=setsockopt
+syscalls[55]=getsockopt
+syscalls[56]=clone
+syscalls[57]=fork
+syscalls[58]=vfork
+syscalls[59]=execve
+syscalls[60]=exit
+syscalls[61]=wait4
+syscalls[62]=kill
+syscalls[63]=uname
+syscalls[64]=semget
+syscalls[65]=semop
+syscalls[66]=semctl
+syscalls[67]=shmdt
+syscalls[68]=msgget
+syscalls[69]=msgsnd
+syscalls[70]=msgrcv
+syscalls[71]=msgctl
+syscalls[72]=fcntl
+syscalls[73]=flock
+syscalls[74]=fsync
+syscalls[75]=fdatasync
+syscalls[76]=truncate
+syscalls[77]=ftruncate
+syscalls[78]=getdents
+syscalls[79]=getcwd
+syscalls[80]=chdir
+syscalls[81]=fchdir
+syscalls[82]=rename
+syscalls[83]=mkdir
+syscalls[84]=rmdir
+syscalls[85]=creat
+syscalls[86]=link
+syscalls[87]=unlink
+syscalls[88]=symlink
+syscalls[89]=readlink
+syscalls[90]=chmod
+syscalls[91]=fchmod
+syscalls[92]=chown
+syscalls[93]=fchown
+syscalls[94]=lchown
+syscalls[95]=umask
+syscalls[96]=gettimeofday
+syscalls[97]=getrlimit
+syscalls[98]=getrusage
+syscalls[99]=sysinfo
+syscalls[100]=times
+syscalls[101]=ptrace
+syscalls[102]=getuid
+syscalls[103]=syslog
+syscalls[104]=getgid
+syscalls[105]=setuid
+syscalls[106]=setgid
+syscalls[107]=geteuid
+syscalls[108]=getegid
+syscalls[109]=setpgid
+syscalls[110]=getppid
+syscalls[111]=getpgrp
+syscalls[112]=setsid
+syscalls[113]=setreuid
+syscalls[114]=setregid
+syscalls[115]=getgroups
+syscalls[116]=setgroups
+syscalls[117]=setresuid
+syscalls[118]=getresuid
+syscalls[119]=setresgid
+syscalls[120]=getresgid
+syscalls[121]=getpgid
+syscalls[122]=setfsuid
+syscalls[123]=setfsgid
+syscalls[124]=getsid
+syscalls[125]=capget
+syscalls[126]=capset
+syscalls[127]=rt_sigpending
+syscalls[128]=rt_sigtimedwait
+syscalls[129]=rt_sigqueueinfo
+syscalls[130]=rt_sigsuspend
+syscalls[131]=sigaltstack
+syscalls[132]=utime
+syscalls[133]=mknod
+syscalls[134]=uselib
+syscalls[135]=personality
+syscalls[136]=ustat
+syscalls[137]=statfs
+syscalls[138]=fstatfs
+syscalls[139]=sysfs
+syscalls[140]=getpriority
+syscalls[141]=setpriority
+syscalls[142]=sched_setparam
+syscalls[143]=sched_getparam
+syscalls[144]=sched_setscheduler
+syscalls[145]=sched_getscheduler
+syscalls[146]=sched_get_priority_max
+syscalls[147]=sched_get_priority_min
+syscalls[148]=sched_rr_get_interval
+syscalls[149]=mlock
+syscalls[150]=munlock
+syscalls[151]=mlockall
+syscalls[152]=munlockall
+syscalls[153]=vhangup
+syscalls[154]=modify_ldt
+syscalls[155]=pivot_root
+syscalls[156]=_sysctl
+syscalls[157]=prctl
+syscalls[158]=arch_prctl
+syscalls[159]=adjtimex
+syscalls[160]=setrlimit
+syscalls[161]=chroot
+syscalls[162]=sync
+syscalls[163]=acct
+syscalls[164]=settimeofday
+syscalls[165]=mount
+syscalls[166]=umount2
+syscalls[167]=swapon
+syscalls[168]=swapoff
+syscalls[169]=reboot
+syscalls[170]=sethostname
+syscalls[171]=setdomainname
+syscalls[172]=iopl
+syscalls[173]=ioperm
+syscalls[174]=create_module
+syscalls[175]=init_module
+syscalls[176]=delete_module
+syscalls[177]=get_kernel_syms
+syscalls[178]=query_module
+syscalls[179]=quotactl
+syscalls[180]=nfsservctl
+syscalls[181]=getpmsg
+syscalls[182]=putpmsg
+syscalls[183]=afs_syscall
+syscalls[184]=tuxcall
+syscalls[185]=security
+syscalls[186]=gettid
+syscalls[187]=readahead
+syscalls[188]=setxattr
+syscalls[189]=lsetxattr
+syscalls[190]=fsetxattr
+syscalls[191]=getxattr
+syscalls[192]=lgetxattr
+syscalls[193]=fgetxattr
+syscalls[194]=listxattr
+syscalls[195]=llistxattr
+syscalls[196]=flistxattr
+syscalls[197]=removexattr
+syscalls[198]=lremovexattr
+syscalls[199]=fremovexattr
+syscalls[200]=tkill
+syscalls[201]=time
+syscalls[202]=futex
+syscalls[203]=sched_setaffinity
+syscalls[204]=sched_getaffinity
+syscalls[205]=set_thread_area
+syscalls[206]=io_setup
+syscalls[207]=io_destroy
+syscalls[208]=io_getevents
+syscalls[209]=io_submit
+syscalls[210]=io_cancel
+syscalls[211]=get_thread_area
+syscalls[212]=lookup_dcookie
+syscalls[213]=epoll_create
+syscalls[214]=epoll_ctl_old
+syscalls[215]=epoll_wait_old
+syscalls[216]=remap_file_pages
+syscalls[217]=getdents64
+syscalls[218]=set_tid_address
+syscalls[219]=restart_syscall
+syscalls[220]=semtimedop
+syscalls[221]=fadvise64
+syscalls[222]=timer_create
+syscalls[223]=timer_settime
+syscalls[224]=timer_gettime
+syscalls[225]=timer_getoverrun
+syscalls[226]=timer_delete
+syscalls[227]=clock_settime
+syscalls[228]=clock_gettime
+syscalls[229]=clock_getres
+syscalls[230]=clock_nanosleep
+syscalls[231]=exit_group
+syscalls[232]=epoll_wait
+syscalls[233]=epoll_ctl
+syscalls[234]=tgkill
+syscalls[235]=utimes
+syscalls[236]=vserver
+syscalls[237]=mbind
+syscalls[238]=set_mempolicy
+syscalls[239]=get_mempolicy
+syscalls[240]=mq_open
+syscalls[241]=mq_unlink
+syscalls[242]=mq_timedsend
+syscalls[243]=mq_timedreceive
+syscalls[244]=mq_notify
+syscalls[245]=mq_getsetattr
+syscalls[246]=kexec_load
+syscalls[247]=waitid
+syscalls[248]=add_key
+syscalls[249]=request_key
+syscalls[250]=keyctl
+syscalls[251]=ioprio_set
+syscalls[252]=ioprio_get
+syscalls[253]=inotify_init
+syscalls[254]=inotify_add_watch
+syscalls[255]=inotify_rm_watch
+syscalls[256]=migrate_pages
+syscalls[257]=openat
+syscalls[258]=mkdirat
+syscalls[259]=mknodat
+syscalls[260]=fchownat
+syscalls[261]=futimesat
+syscalls[262]=newfstatat
+syscalls[263]=unlinkat
+syscalls[264]=renameat
+syscalls[265]=linkat
+syscalls[266]=symlinkat
+syscalls[267]=readlinkat
+syscalls[268]=fchmodat
+syscalls[269]=faccessat
+syscalls[270]=pselect6
+syscalls[271]=ppoll
+syscalls[272]=unshare
+syscalls[273]=set_robust_list
+syscalls[274]=get_robust_list
+syscalls[275]=splice
+syscalls[276]=tee
+syscalls[277]=sync_file_range
+syscalls[278]=vmsplice
+syscalls[279]=move_pages
+syscalls[280]=utimensat
+syscalls[281]=epoll_pwait
+syscalls[282]=signalfd
+syscalls[283]=timerfd_create
+syscalls[284]=eventfd
+syscalls[285]=fallocate
+syscalls[286]=timerfd_settime
+syscalls[287]=timerfd_gettime
+syscalls[288]=accept4
+syscalls[289]=signalfd4
+syscalls[290]=eventfd2
+syscalls[291]=epoll_create1
+syscalls[292]=dup3
+syscalls[293]=pipe2
+syscalls[294]=inotify_init1
+syscalls[295]=preadv
+syscalls[296]=pwritev
+syscalls[297]=rt_tgsigqueueinfo
+syscalls[298]=perf_event_open
+syscalls[299]=recvmmsg
+syscalls[300]=fanotify_init
+syscalls[301]=fanotify_mark
+syscalls[302]=prlimit64
+syscalls[303]=name_to_handle_at
+syscalls[304]=open_by_handle_at
+syscalls[305]=clock_adjtime
+syscalls[306]=syncfs
+syscalls[307]=sendmmsg
+syscalls[308]=setns
+syscalls[309]=getcpu
+syscalls[310]=process_vm_readv
+syscalls[311]=process_vm_writev
+syscalls[312]=kcmp
+syscalls[313]=finit_module
+syscalls[314]=sched_setattr
+syscalls[315]=sched_getattr
+syscalls[316]=renameat2
+syscalls[317]=seccomp
+syscalls[318]=getrandom
+syscalls[319]=memfd_create
+syscalls[320]=kexec_file_load
+syscalls[321]=bpf
+syscalls[322]=stub_execveat
+syscalls[323]=userfaultfd
+syscalls[324]=membarrier
+syscalls[325]=mlock2
+syscalls[326]=copy_file_range
+syscalls[327]=preadv2
+syscalls[328]=pwritev2
+
+if [[ $# -eq 1 && $1 = "list" ]]
+then
+    for i in $(seq ${#syscalls[*]})
+    do
+        echo $(($i - 1)): ${syscalls[$(($i - 1))]}
+    done
+    exit 0
+fi
+
+if [[ $# -eq 1 ]]
+then
+    if [[ ! $1 =~ ^[0-9]+ ]]
+    then
+        >&2 echo "Illegal number: \`$1'"
+        exit 1
+    fi
+    desc=${syscalls[$1]}
+    if [[ $desc = "" ]]
+    then
+        >&2 echo "unknown syscall: \`$1'"
+        exit 1
+    fi
+    echo $desc
+    exit 0
+fi
+
+for sysnum in $@
+do
+    if [[ ! $sysnum =~ ^[0-9]+ ]]
+    then
+        >&2 echo "Illegal number: \`$sysnum'"
+        exit 1
+    fi
+    desc=${syscalls[$sysnum]}
+    if [[ $desc = "" ]]
+    then
+        >&2 echo "unknown syscall: \`$sysnum'"
+        exit 1
+    fi
+    echo $sysnum: $desc
+done

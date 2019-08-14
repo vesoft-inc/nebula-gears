@@ -7,6 +7,7 @@ install(
         core-bt-batch
         core-save-to
         pthreads
+        psyscall
     PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE

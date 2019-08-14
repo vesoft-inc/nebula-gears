@@ -2,15 +2,17 @@
 
 if [[ $# -ne 1 ]]
 then
-    echo "$0 <pid>"
+    >&2 echo "$0 <pid>"
     exit 1
 fi
+
+psyscall=$(dirname $0)/psyscall
 
 pid=$1
 
 if [[ ! -d /proc/$pid ]]
 then
-    echo "No such process: $pid"
+    >&2 echo "No such process: $pid"
     exit 1
 fi
 tids=$(cd /proc/$pid/task && ls -d [1-9]*)
@@ -40,17 +42,67 @@ function format_number() {
     fi
 }
 
-printf "%-8s%16s%8s%8s%8s%12s%12s%12s%12s\n" \
-           "Thread" "Name" "Status" "Minor" "Major" "utime" "stime" "time" "iotime"
+
+mmaps=($(grep ^[0-9a-f] /proc/$pid/smaps | awk '{print $1}'))
+
+function get_stack_size() {
+    mmaps=$1
+    target=$2
+    local left=0
+    local right=$((${#mmaps[*]} - 1))
+    while [[ $left -lt $right ]]
+    do
+        local mid=$(( ($left + $right) / 2 ))
+        tmp=${mmaps[$mid]}
+        beg=${tmp%-*}
+        end=${tmp#*-}
+        if [[ $target -ge 0x$beg && $target -lt 0x$end ]]
+        then
+            echo $(( (0x$end - 0x$beg) / 1024))k
+            return 0
+        elif [[ $target -ge 0x$end ]]
+        then
+            left=$mid
+        else
+            right=$mid
+        fi
+    done
+    echo "(null)"
+}
+
+printf "%-8s%16s%3s%8s%8s%12s%12s%12s%10s%8s %-s\n" \
+           "Thread" "Name" "St" "Minor" "Major" "utime" "stime" "time" "iotime" "stack" "syscall"
 
 for tid in $tids
 do
     stat=$(cat /proc/$pid/task/$tid/stat)
+    syscall=$(cat /proc/$pid/task/$tid/syscall)
     [[ $stat =~ ^.*\((.*)\) ]] && name=${BASH_REMATCH[1]}
     [[ $stat =~ ^.*\(.*\)(.*) ]] && stat=${BASH_REMATCH[1]}
-    read status minflt majflt utime stime wchan iotime < <( a=($stat); echo ${a[0]} ${a[7]} ${a[9]} ${a[11]} ${a[12]} ${a[32]} ${a[39]} )
+    [[ $syscall =~ ^(-?[0-9]+) ]] && sysnum=${BASH_REMATCH[1]}
+    [[ $syscall =~ .*(0x.*)\ (0x.*)$ ]] && rsp=${BASH_REMATCH[1]}
+    if [[ $syscall = "running" ]]
+    then
+        syscall="(N/A)"
+    elif [[ $sysnum -eq -1 ]]
+    then
+        syscall="(blocked)"
+    else
+        syscall=$($psyscall $sysnum)
+    fi
+    if [[ $rsp = "" ]]
+    then
+        stack_size="(N/A)"
+    else
+        stack_size=$(get_stack_size $mmaps $rsp)
+    fi
+    read status minflt majflt utime stime iotime < \
+        <( a=($stat); echo ${a[0]} ${a[7]} ${a[9]} ${a[11]} ${a[12]} ${a[39]} )
     time=$(($stime + $utime))
-    printf "%-8d%16s%8s%8s%8s%12s%12s%12s%12s\n" \
-        $tid "$name" "$status" "$(format_number $minflt)" "$(format_number $majflt)" \
-        "$(format_ticks $utime)" "$(format_ticks $stime)" "$(format_ticks $time)" "$(format_ticks $iotime)"
+    [[ $tid -eq $pid ]] && echo -ne "\033[0;32m"
+    printf "%-8s%16s%3s%8s%8s%12s%12s%12s%10s%8s %-s\n" \
+        "$tid" "$name" "$status" "$(format_number $minflt)" "$(format_number $majflt)" \
+        "$(format_ticks $utime)" "$(format_ticks $stime)" "$(format_ticks $time)" \
+        "$(format_ticks $iotime)" "$stack_size" "$syscall"
+    [[ $tid -eq $pid ]] && echo -ne "\033[0m"
 done
