@@ -1,5 +1,8 @@
 #! /bin/bash
 
+export LC_ALL=C
+export LANG=C
+
 if [[ $# -ne 1 ]]
 then
     >&2 echo "$0 <pid>"
@@ -75,8 +78,8 @@ printf "%-8s%16s%3s%8s%8s%12s%12s%12s%10s%8s %-s\n" \
 
 for tid in $tids
 do
-    stat=$(cat /proc/$pid/task/$tid/stat)
-    syscall=$(cat /proc/$pid/task/$tid/syscall)
+    stat="$(<"/proc/$pid/task/$tid/stat")"
+    syscall="$(<"/proc/$pid/task/$tid/syscall")"
     [[ $stat =~ ^.*\((.*)\) ]] && name=${BASH_REMATCH[1]}
     [[ $stat =~ ^.*\(.*\)(.*) ]] && stat=${BASH_REMATCH[1]}
     [[ $syscall =~ ^(-?[0-9]+) ]] && sysnum=${BASH_REMATCH[1]}
@@ -88,6 +91,7 @@ do
     then
         syscall="(blocked)"
     else
+        #syscall=$($psyscall $sysnum)
         syscall=$($psyscall $sysnum)
     fi
     if [[ $rsp = "" ]]

@@ -58,7 +58,6 @@ Packager        : $USER
 License         : BSD
 Vendor          : VEsoft Inc.
 Group           : Development/Libraries
-BuildArch       : noarch
 Prefix          : %{_prefix}
 Release         : 1
 Provides        : nebula.gdb,pthreads,syscheck,sodag
@@ -79,14 +78,12 @@ URL             : https://github.com/dutor/nebula-gears
 
 %build
 mkdir build && cd build
-cmake -DCMAKE_INSTALL_PREFIX=\$RPM_BUILD_ROOT%{_prefix} -DCMAKE_INSTALL_SYSCONFDIR=\$RPM_BUILD_ROOT/etc ..
+cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_INSTALL_SYSCONFDIR=/etc ..
 make -j
 
 %install
 cd build
-make install -j
-cd ..
-rm -r build
+make install DESTDIR=\$RPM_BUILD_ROOT
 
 %post
 
@@ -94,10 +91,20 @@ ldconfig
 
 %files
 %{_prefix}/bin/*
-%{_sysconfdir}/gdbinit.d/*
 
 %clean
+rm -rf build
 
+%package noarch
+%define _arch noarch
+BuildArch: noarch
+Summary: a
+
+%description noarch
+    No compatible architectures found for build
+
+%files noarch
+%{_sysconfdir}/gdbinit.d/*
 
 %changelog
 
@@ -115,4 +122,3 @@ rpmbuild --rmspec --macros=/usr/lib/rpm/macros \
 [ $? -eq 0 ] || FATAL "Failed to build RPM"
 
 INFO "RPM building done."
-INFO "Located at $(ls $RPM_BUILD_ROOT/RPMS/x86_64/*.rpm)"
