@@ -23,11 +23,6 @@ add_compile_options(-Wno-class-memaccess)
 add_compile_options(-Werror)
 add_compile_options(-fdebug-prefix-map=${PROJECT_SOURCE_DIR}/=)
 
-
-macro(nebula_add_executable name)
-    add_executable(${name} ${ARGN})
-endmacro()
-
 add_subdirectory(etc)
 add_subdirectory(scripts)
 add_subdirectory(src)
