@@ -1,11 +1,11 @@
 install(
     FILES
-        sodag
         syscheck
         core-execname
         core-bt
         core-bt-batch
         core-save-to
+        least-libc-version
         pthreads
         psyscall
     PERMISSIONS
