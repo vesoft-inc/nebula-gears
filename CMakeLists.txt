@@ -29,3 +29,20 @@ include(external/capstone.cmake)
 add_subdirectory(etc)
 add_subdirectory(scripts)
 add_subdirectory(src)
+
+set(package_name nebula-gears)
+configure_file(
+    ${CMAKE_SOURCE_DIR}/aux/self-extractable.sh.in
+    ${CMAKE_BINARY_DIR}/${package_name}.sh
+    @ONLY
+)
+
+add_custom_target(
+    package
+    COMMAND
+        make install DESTDIR=${CMAKE_BINARY_DIR}/stage
+    COMMAND
+        tar -cJvf - -C ${CMAKE_BINARY_DIR}/stage/${CMAKE_INSTALL_PREFIX} . >> ${CMAKE_BINARY_DIR}/${package_name}.sh
+    COMMAND
+        chmod +x ${CMAKE_BINARY_DIR}/${package_name}.sh
+)

@@ -8,6 +8,10 @@ install(
         least-libc-version
         pthreads
         psyscall
+        arch-type
+        package-type
+        system-info
+        libc-version
     PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE

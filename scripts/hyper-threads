@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+set -e
+
+lscpu | awk 'BEGIN{s=1;}/Thread\(s\) per core|Core\(s\) per socket|Socket\(s\)/{s*=$NF;}END{print s;}' 2>/dev/null

@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+# Usage: $0 <exe or dso>
+
+hash yum &>/dev/null && { echo rpm; exit 0; }
+hash apt-get &>/dev/null && { echo deb; exit 0; }
+
+echo unknown
+exit 1

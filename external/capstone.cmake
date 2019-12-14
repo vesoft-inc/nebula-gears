@@ -16,6 +16,7 @@ ExternalProject_Add(
     STAMP_DIR ${build_root}/build-info
     DOWNLOAD_DIR ${build_root}/build-info
     SOURCE_DIR ${build_root}/${name}/source
+    UPDATE_COMMAND ""
     CMAKE_ARGS
         -DCAPSTONE_X86_SUPPORT=ON
         -DCAPSTONE_ARM_SUPPORT=OFF

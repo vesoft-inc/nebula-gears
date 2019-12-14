@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+
+set -e
+
+kernel=$(uname)
+arch=$(uname -p)
+distro=$(lsb_release -si)
+distro_version=$(lsb_release -sr)
+glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
+
+physical_cores=$(lscpu | awk 'BEGIN{s=1;}/Core\(s\) per socket|Socket\(s\)/{s*=$NF;}END{print s;}' 2>/dev/null)
+hyper_threads=$(lscpu | awk 'BEGIN{s=1;}/Thread\(s\) per core|Core\(s\) per socket|Socket\(s\)/{s*=$NF;}END{print s;}' 2>/dev/null)
+
+total_mem=$(awk '/^MemTotal/{ print $2; }' /proc/meminfo 2>/dev/null)
+free_mem=$(awk '/^MemFree/{ print $2; }' /proc/meminfo 2>/dev/null)
+available_mem=$(awk '/^MemAvailable/{print $2;}' /proc/meminfo 2>/dev/null)
+[[ -z $available_mem ]] && available_mem=$(awk '/^MemFree|^Buffers|^Cached|^SwapCached/{s+=$2;}END{print s;}' /proc/meminfo 2>/dev/null)
+
+echo $kernel,$arch,$distro,$distro_version,$glibc_version,$physical_cores,$hyper_threads,$total_mem,$free_mem,$available_mem
