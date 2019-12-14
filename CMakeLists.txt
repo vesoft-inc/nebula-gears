@@ -40,7 +40,7 @@ configure_file(
 add_custom_target(
     package
     COMMAND
-        make install DESTDIR=${CMAKE_BINARY_DIR}/stage
+        make -s install DESTDIR=${CMAKE_BINARY_DIR}/stage
     COMMAND
         tar -cJvf - -C ${CMAKE_BINARY_DIR}/stage/${CMAKE_INSTALL_PREFIX} . >> ${CMAKE_BINARY_DIR}/${package_name}.sh
     COMMAND
