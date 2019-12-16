@@ -5,12 +5,15 @@
 # This source code is licensed under Apache 2.0 License,
 # attached with Common Clause Condition 1.0, found in the LICENSES directory.
 
-# Usage: @package_name@.sh [--prefix]
+# Usage: @package_name@-installer.sh [--prefix]
 
 set -e
 
 [[ $# -ne 0 ]] && prefix=$(echo "$@" | sed 's;.*--prefix=(\S*).*;\1;' -r)
+[[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version;1;' -r)
 prefix=${prefix:-/usr/local}
+
+[[ $version -eq 1 ]] && { echo @FULL_VERSION@; exit 0; }
 
 hash xz &>/dev/null || { echo "xz: command not found"; exit 1; }
 hash lsb_release &>/dev/null || { echo "lsb_release: command not found"; exit 1; }

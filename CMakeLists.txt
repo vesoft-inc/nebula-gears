@@ -34,10 +34,10 @@ add_subdirectory(etc)
 add_subdirectory(scripts)
 add_subdirectory(src)
 
-set(package_name nebula-gears-installer)
+set(package_name nebula-gears)
 configure_file(
     ${CMAKE_SOURCE_DIR}/aux/self-extractable.sh.in
-    ${CMAKE_BINARY_DIR}/${package_name}-meta.sh
+    ${CMAKE_BINARY_DIR}/${package_name}-installer-meta.sh
     @ONLY
 )
 
@@ -59,9 +59,9 @@ add_custom_target(
     COMMAND
         sed -i "s#${stage_install_prefix}/##" ${stage_install_prefix}/${share_dir}/${installed_files_file}
     COMMAND
-        cp -f ${CMAKE_BINARY_DIR}/${package_name}-meta.sh ${package_name}.sh
+        cp -f ${CMAKE_BINARY_DIR}/${package_name}-installer-meta.sh ${package_name}-installer.sh
     COMMAND
-        tar -cJf - -C ${stage_install_prefix} . >> ${CMAKE_BINARY_DIR}/${package_name}.sh
+        tar -cJf - -C ${stage_install_prefix} . >> ${CMAKE_BINARY_DIR}/${package_name}-installer.sh
     COMMAND
-        chmod +x ${CMAKE_BINARY_DIR}/${package_name}.sh
+        chmod +x ${CMAKE_BINARY_DIR}/${package_name}-installer.sh
 )
