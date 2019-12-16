@@ -2,4 +2,4 @@
 
 set -e
 
-lsb_release -sir | tr ' ' '-'
+echo $(lsb_release -sir) | tr ' ' '-'

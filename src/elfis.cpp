@@ -42,6 +42,14 @@ int main (int argc, char **argv) {
 
     auto *ehdr = reinterpret_cast<Elf64_Ehdr*>(base);
 
+    if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
+            ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
+            ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
+            ehdr->e_ident[EI_MAG3] != ELFMAG3) {
+        fprintf(stderr, "%s: not an ELF file\n", argv[1]);
+        return 1;
+    }
+
     auto *shdr_base = base + ehdr->e_shoff;
     auto shdr_size = ehdr->e_shentsize;
     auto shdr_num = ehdr->e_shnum;
@@ -50,13 +58,12 @@ int main (int argc, char **argv) {
     auto snames_base = base + sname_hdr->sh_offset;
 
     using CodeSection = std::tuple<const uint8_t*, uint64_t, size_t>;
-    std::unordered_set<std::string> code_section_names = {".init", ".plt", ".text", ".fini"};
     std::vector<CodeSection> code_sections;
 
     for (auto i = 0u; i < shdr_num; i++) {
         auto shdr = reinterpret_cast<Elf64_Shdr*>(shdr_base + shdr_size * i);
         auto shdr_name = snames_base + shdr->sh_name;
-        if (code_section_names.count(shdr_name) == 1) {
+        if ((shdr->sh_flags & SHF_EXECINSTR) != 0) {
             auto *start = reinterpret_cast<const uint8_t*>(base + shdr->sh_offset);
             auto vma = reinterpret_cast<uint64_t>(shdr->sh_addr);
             auto size = shdr->sh_size;
