@@ -4,76 +4,44 @@
  * attached with Common Clause Condition 1.0, found in the LICENSES directory.
  */
 
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <elf.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <inttypes.h>
-#include <cassert>
+#include <unistd.h>
+#include <libelf.h>
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
 #include <capstone/capstone.h>
-#include <algorithm>
-#include <unordered_map>
-#include <map>
-#include <unordered_set>
-#include <vector>
 #include <tuple>
+#include <string>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
+#include <algorithm>
 
-int main (int argc, char **argv) {
-    if (argc != 2) {
-        fprintf(stderr, "%s <executable>\n", argv[0]);
-        return 1;
-    }
 
-    auto fd = ::open(argv[1], O_RDONLY);
-    if (fd == -1) {
-        ::perror("open");
-        return 1;
-    }
-    auto size = ::lseek(fd, 0, SEEK_END);
-    auto *base = (char*)::mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (base == MAP_FAILED) {
-        ::perror("open");
-        return 1;
-    }
+class Disassembler final {
+public:
+    Disassembler();
+    ~Disassembler();
+    bool disass(const char *path);
+    void report();
 
-    auto *ehdr = reinterpret_cast<Elf64_Ehdr*>(base);
+private:
+    bool disass_elf(Elf *elf);
+    bool disass_ar(Elf *elf);
 
-    if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
-            ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
-            ehdr->e_ident[EI_MAG2] != ELFMAG2 ||
-            ehdr->e_ident[EI_MAG3] != ELFMAG3) {
-        fprintf(stderr, "%s: not an ELF file\n", argv[1]);
-        return 1;
-    }
+private:
+    static constexpr auto kBaseGroupId = 1;
+    int fd_ = -1;
+    size_t insn_count_ = 0UL;
+    std::map<uint32_t, std::unordered_set<std::string>> groups_;
+    std::unordered_map<uint32_t, std::string> group_names_;
+};
 
-    auto *shdr_base = base + ehdr->e_shoff;
-    auto shdr_size = ehdr->e_shentsize;
-    auto shdr_num = ehdr->e_shnum;
-    // auto sname_hdr_idx = ehdr->e_shstrndx;
-    // auto sname_hdr = reinterpret_cast<Elf64_Shdr*>(shdr_base + sname_hdr_idx * shdr_size);
-    // auto snames_base = base + sname_hdr->sh_offset;
 
-    using CodeSection = std::tuple<const uint8_t*, uint64_t, size_t>;
-    std::vector<CodeSection> code_sections;
-
-    for (auto i = 0u; i < shdr_num; i++) {
-        auto shdr = reinterpret_cast<Elf64_Shdr*>(shdr_base + shdr_size * i);
-        // auto shdr_name = snames_base + shdr->sh_name;
-        if ((shdr->sh_flags & SHF_EXECINSTR) != 0) {
-            auto *start = reinterpret_cast<const uint8_t*>(base + shdr->sh_offset);
-            auto vma = reinterpret_cast<uint64_t>(shdr->sh_addr);
-            auto size = shdr->sh_size;
-            code_sections.emplace_back(start, vma, size);
-        }
-    }
-
-    constexpr auto kBaseGroupId = 1;
-    std::map<uint32_t, std::unordered_set<std::string>> groups;
-    std::unordered_map<uint32_t, std::string> group_names {
+Disassembler::Disassembler() {
+    group_names_ = {
         {kBaseGroupId, "BASE"},
         {128, "VT-x/AMD-V"},
         {129, "3DNow"},
@@ -118,48 +86,19 @@ int main (int argc, char **argv) {
         {168, "NOVLX"},
         {169, "FPU"},
     };
+}
 
-    auto insn_count = 0UL;
-    for (auto &section : code_sections) {
-        ::csh handle;
-        if (auto err = ::cs_open(CS_ARCH_X86, CS_MODE_64, &handle)) {
-            fprintf(stderr, "Failed to disassemble: %s\n", ::cs_strerror(err));
-            continue;
-        }
-        ::cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
-        //::cs_option(handle, CS_OPT_SYNTAX, CS_OPT_SYNTAX_ATT);
-        auto code = std::get<0>(section);
-        auto vma = std::get<1>(section);
-        auto size = std::get<2>(section);
-        auto *insn = ::cs_malloc(handle);
-        while (::cs_disasm_iter(handle, &code, &size, &vma, insn)) {
-            insn_count++;
-            auto *detail = insn->detail;
-            if (detail == nullptr) {
-                continue;
-            }
-            if (detail->groups_count == 0) {
-                continue;
-            }
-            for (auto i = 0u; i < detail->groups_count; i++) {
-                auto group = detail->groups[i];
-                if (group < 128) {
-                    group = kBaseGroupId;
-                }
-                groups[group].emplace(insn->mnemonic);
-            }
-        }
-        if (size != 0) {
-            fprintf(stderr, "Warning: Failed to disassemble at 0x%lx, skip this section\n", vma);
-        }
-        ::cs_free(insn, 1);
-        ::cs_close(&handle);
-    }
 
-    for (auto &pair : groups) {
+Disassembler::~Disassembler() {
+    ::close(fd_);
+}
+
+
+void Disassembler::report() {
+    for (auto &pair : groups_) {
         char list[4096];
         auto pos = 0;
-        auto len = snprintf(list, sizeof(list), "%s\n      ", group_names[pair.first].c_str());
+        auto len = snprintf(list, sizeof(list), "%s\n      ", group_names_[pair.first].c_str());
         pos += len;
         auto current_width = len;
         auto first = true;
@@ -184,8 +123,157 @@ int main (int argc, char **argv) {
         list[pos] = '\0';
         fprintf(stdout, "%s\n", list);
     }
+    fprintf(stdout, "\n%lu instructions disassembled\n", insn_count_);
+}
 
-    fprintf(stdout, "\n%lu instructions disassembled\n", insn_count);
+
+bool Disassembler::disass(const char *path) {
+    if (elf_version(EV_CURRENT) == EV_NONE) {
+        return false;
+    }
+
+    if (fd_ != -1) {
+        ::close(fd_);
+        fd_ = -1;
+    }
+
+    fd_ = ::open(path, O_RDONLY);
+    if (fd_ == -1) {
+        ::perror(path);
+        return false;
+    }
+
+    Elf *elf = nullptr;
+    auto ok = false;
+    do {
+        elf = elf_begin(fd_, ELF_C_READ, nullptr);
+        if (elf == nullptr) {
+            fprintf(stderr, "Failed to open ELF file\n");
+            break;
+        }
+
+        auto kind = elf_kind(elf);
+        if (kind == ELF_K_ELF) {
+            ok = disass_elf(elf);
+            break;
+        } else if (kind == ELF_K_AR) {
+            ok = disass_ar(elf);
+            break;
+        } else {
+            fprintf(stderr, "Unknown file type\n");
+            break;
+        }
+    } while (false);
+
+    if (elf != nullptr) {
+        elf_end(elf);
+    }
+    return ok;
+}
+
+
+bool Disassembler::disass_elf(Elf *elf) {
+    auto ok = true;
+    Elf_Scn *scn = nullptr;
+    // auto *ehdr = elf64_getehdr(elf);
+    while ((scn = elf_nextscn(elf, scn)) != nullptr) {
+        auto *shdr = elf64_getshdr(scn);
+        if (shdr == nullptr) {
+            continue;
+        }
+
+        if ((shdr->sh_flags & SHF_EXECINSTR) == 0) {
+            continue;
+        }
+
+        ::csh handle;
+        if (::cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != 0) {
+            ok = false;
+            break;
+        }
+        ::cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
+        auto *data = elf_rawdata(scn, nullptr);
+        if (data == nullptr || data->d_size == 0) {
+            continue;
+        }
+
+        auto code = (const uint8_t*)data->d_buf;
+        auto vma = static_cast<uint64_t>(shdr->sh_addr);
+        auto size = data->d_size;
+        auto *insn = ::cs_malloc(handle);
+        while (::cs_disasm_iter(handle, &code, &size, &vma, insn)) {
+            ++insn_count_;
+            auto *detail = insn->detail;
+            if (detail == nullptr) {
+                continue;
+            }
+            if (detail->groups_count == 0) {
+                continue;
+            }
+            for (auto i = 0u; i < detail->groups_count; i++) {
+                auto group = detail->groups[i];
+                if (group < 128) {
+                    group = kBaseGroupId;
+                }
+                groups_[group].emplace(insn->mnemonic);
+            }
+        }
+        if (size != 0) {
+            fprintf(stderr, "Warning: cannot disassemble instruction at 0x%lx, skip this section\n", vma);
+            ok = false;
+        }
+        ::cs_free(insn, 1);
+        ::cs_close(&handle);
+        if (!ok) {
+            break;
+        }
+    }
+
+    return ok;
+}
+
+
+bool Disassembler::disass_ar(Elf *arf) {
+    auto ok = true;
+    while (auto *elf = elf_begin(fd_, ELF_C_READ, arf)) {
+        auto *arhdr = elf_getarhdr(elf);
+        if (arhdr == nullptr) {
+            continue;
+        }
+        // Skip archive's symbol table
+        if (::strcmp(arhdr->ar_name, "/") == 0) {
+            elf_next(elf);
+            elf_end(elf);
+            continue;
+        }
+        // Skip archive's string table
+        if (::strcmp(arhdr->ar_name, "//") == 0) {
+            elf_next(elf);
+            elf_end(elf);
+            continue;
+        }
+        ok = disass_elf(elf);
+        elf_next(elf);
+        elf_end(elf);
+        if (!ok) {
+            break;
+        }
+    }
+    return ok;
+}
+
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        fprintf(stderr, "%s <elf|archive>...\n", argv[0]);
+        return 1;
+    }
+
+    Disassembler disasm;
+
+    for (auto i = 1; i < argc; i++) {
+        disasm.disass(argv[i]);
+    }
+    disasm.report();
 
     return 0;
 }
