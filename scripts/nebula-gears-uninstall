@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+
+set -e
+set -o pipefail
+
+this_dir=$(dirname $(readlink -f $0))
+
+bin_dir_name=$(basename $this_dir)
+[[ $bin_dir_name = bin ]] || exit 1
+
+install_prefix=$(dirname $this_dir)
+share_dir=$install_prefix/share/nebula-gears
+installed_files_file=$share_dir/installed_files
+
+for file in $(cat $installed_files_file)
+do
+    echo "Removing $install_prefix/$file"
+    rm -f $install_prefix/$file
+done
+
+echo "Done"

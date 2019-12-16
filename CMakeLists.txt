@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project("nebula-gears" CXX ASM)
 
-
 set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib)
@@ -37,14 +36,27 @@ configure_file(
     @ONLY
 )
 
+set(stage_dir "${CMAKE_BINARY_DIR}/stage")
+set(stage_install_prefix "${stage_dir}/${CMAKE_INSTALL_PREFIX}")
+set(share_dir "share/nebula-gears")
+set(installed_files_file "installed_files")
+
 add_custom_target(
     package
     COMMAND
-        make -s install DESTDIR=${CMAKE_BINARY_DIR}/stage
+        make -s install DESTDIR=${stage_dir}
+    COMMAND
+        mkdir -p ${stage_install_prefix}/${share_dir}
+    COMMAND
+        find ${stage_install_prefix} -type f -fprint ${stage_install_prefix}/${share_dir}/${installed_files_file}
+    COMMAND
+        find ${stage_install_prefix} -type f -fprint ${stage_install_prefix}/${share_dir}/${installed_files_file}
+    COMMAND
+        sed -i "s#${stage_install_prefix}/##" ${stage_install_prefix}/${share_dir}/${installed_files_file}
     COMMAND
         cp -f ${CMAKE_BINARY_DIR}/${package_name}-meta.sh ${package_name}.sh
     COMMAND
-        tar -cJf - -C ${CMAKE_BINARY_DIR}/stage/${CMAKE_INSTALL_PREFIX} . >> ${CMAKE_BINARY_DIR}/${package_name}.sh
+        tar -cJf - -C ${stage_install_prefix} . >> ${CMAKE_BINARY_DIR}/${package_name}.sh
     COMMAND
         chmod +x ${CMAKE_BINARY_DIR}/${package_name}.sh
 )

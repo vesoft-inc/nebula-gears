@@ -20,6 +20,8 @@ install(
         distro-name
         distro-fullname
         distro-version
+        nebula-gears-uninstall
+        nebula-gears-show-files
     PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE
