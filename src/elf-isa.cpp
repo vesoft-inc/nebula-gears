@@ -53,16 +53,16 @@ int main (int argc, char **argv) {
     auto *shdr_base = base + ehdr->e_shoff;
     auto shdr_size = ehdr->e_shentsize;
     auto shdr_num = ehdr->e_shnum;
-    auto sname_hdr_idx = ehdr->e_shstrndx;
-    auto sname_hdr = reinterpret_cast<Elf64_Shdr*>(shdr_base + sname_hdr_idx * shdr_size);
-    auto snames_base = base + sname_hdr->sh_offset;
+    // auto sname_hdr_idx = ehdr->e_shstrndx;
+    // auto sname_hdr = reinterpret_cast<Elf64_Shdr*>(shdr_base + sname_hdr_idx * shdr_size);
+    // auto snames_base = base + sname_hdr->sh_offset;
 
     using CodeSection = std::tuple<const uint8_t*, uint64_t, size_t>;
     std::vector<CodeSection> code_sections;
 
     for (auto i = 0u; i < shdr_num; i++) {
         auto shdr = reinterpret_cast<Elf64_Shdr*>(shdr_base + shdr_size * i);
-        auto shdr_name = snames_base + shdr->sh_name;
+        // auto shdr_name = snames_base + shdr->sh_name;
         if ((shdr->sh_flags & SHF_EXECINSTR) != 0) {
             auto *start = reinterpret_cast<const uint8_t*>(base + shdr->sh_offset);
             auto vma = reinterpret_cast<uint64_t>(shdr->sh_addr);

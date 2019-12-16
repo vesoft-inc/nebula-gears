@@ -1,11 +1,11 @@
-add_executable(elfis elfis.cpp)
-target_link_options(elfis PRIVATE -static)
-target_link_libraries(elfis capstone)
-add_dependencies(elfis external_capstone)
+add_executable(elf-isa elf-isa.cpp)
+target_link_options(elf-isa PRIVATE -static)
+target_link_libraries(elf-isa capstone)
+add_dependencies(elf-isa external_capstone)
 
 install(
     TARGETS
-        elfis
+        elf-isa
     DESTINATION
         bin
 )
