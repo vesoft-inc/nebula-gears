@@ -20,6 +20,7 @@ install(
         distro-name
         distro-fullname
         distro-version
+        nebula-gears-update
         nebula-gears-uninstall
         nebula-gears-show-files
     PERMISSIONS

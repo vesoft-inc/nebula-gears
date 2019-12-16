@@ -34,7 +34,7 @@ add_subdirectory(etc)
 add_subdirectory(scripts)
 add_subdirectory(src)
 
-set(package_name nebula-gears-installer-${FULL_VERSION})
+set(package_name nebula-gears-installer)
 configure_file(
     ${CMAKE_SOURCE_DIR}/aux/self-extractable.sh.in
     ${CMAKE_BINARY_DIR}/${package_name}-meta.sh
