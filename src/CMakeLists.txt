@@ -10,6 +10,7 @@ add_dependencies(elf-isa external_capstone)
 install(
     TARGETS
         elf-isa
+        elf-size
     DESTINATION
         bin
 )
