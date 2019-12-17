@@ -23,6 +23,6 @@ echo "Unstalling previous installation..."
 nebula-gears-uninstall
 
 echo "Start installing lastest nebula-gears..."
-bash /tmp/nebula-gears-installer-latest.sh
+bash /tmp/nebula-gears-installer-latest.sh --prefix=$install_prefix
 
 rm -f /tmp/nebula-gears-installer-latest.sh

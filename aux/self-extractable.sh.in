@@ -9,8 +9,8 @@
 
 set -e
 
-[[ $# -ne 0 ]] && prefix=$(echo "$@" | sed 's;.*--prefix=(\S*).*;\1;' -r)
-[[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version;1;' -r)
+[[ $# -ne 0 ]] && prefix=$(echo "$@" | sed 's;.*--prefix=(\S*).*;\1;p' -rn)
+[[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version;1;p' -rn)
 prefix=${prefix:-/usr/local}
 
 [[ $version -eq 1 ]] && { echo @FULL_VERSION@; exit 0; }
