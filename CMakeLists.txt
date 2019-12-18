@@ -3,11 +3,6 @@ project("nebula-gears" CXX ASM)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(MAJOR_VERSION 1)
-set(MINOR_VERSION 2)
-set(PATCH_LEVEL 0)
-set(FULL_VERSION ${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_LEVEL})
-
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
@@ -34,6 +29,11 @@ add_subdirectory(etc)
 add_subdirectory(scripts)
 add_subdirectory(src)
 
+execute_process(
+    OUTPUT_VARIABLE FULL_VERSION
+    COMMAND git describe --tags --abbr=0
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 set(package_name nebula-gears)
 configure_file(
     ${CMAKE_SOURCE_DIR}/aux/self-extractable.sh.in

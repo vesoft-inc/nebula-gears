@@ -34,6 +34,7 @@ private:
     }
     void add_section(std::string s, size_t size);
     std::string section_name_abbr(const std::string &s);
+    std::string bytes_format(size_t bytes);
 
 private:
     using SectionInfo = std::tuple<std::string, size_t>;
@@ -45,20 +46,8 @@ private:
 };
 
 
-std::string ElfSizer::section_name_abbr(const std::string &s) {
-    if (s.size() < 24) {
-        return s;
-    }
-    auto copy = s;
-    copy.resize(20);
-    copy += "...";
-    return copy;
-}
-
-
 ElfSizer::ElfSizer() {
     specials_ = {
-        ".bss",
     };
 }
 
@@ -120,7 +109,6 @@ bool ElfSizer::size_of_elf(Elf *elf) {
     Elf_Scn *scn = nullptr;
     auto *ehdr = elf64_getehdr(elf);
     add_section("[ELF Headers]", ehdr->e_ehsize);
-    total_size_ += ehdr->e_ehsize;
     while ((scn = elf_nextscn(elf, scn)) != nullptr) {
         auto *shdr = elf64_getshdr(scn);
         if (shdr == nullptr) {
@@ -135,33 +123,9 @@ bool ElfSizer::size_of_elf(Elf *elf) {
             sh_size = 0;
         }
         add_section(sh_name, sh_size);
-
-        total_size_ += sh_size;
     }
 
     return ok;
-}
-
-
-void ElfSizer::print() {
-    std::vector<SectionInfo> svec(sections_.size());
-    std::transform(sections_.begin(), sections_.end(), svec.begin(), [] (auto &e) {
-        return e.second;
-    });
-    std::sort(svec.begin(), svec.end(), [] (auto &l, auto &r) {
-        return std::get<1>(r) < std::get<1>(l);
-    });
-    // fprintf(stdout, "%-24s%9s%7s\n", "SECTION", "SIZE", "%");
-    for (auto &s : svec) {
-        if (!is_special(std::get<0>(s)) && std::get<1>(s) * 100.0 / total_size_ < 0.1) {
-            continue;
-        }
-        fprintf(stdout, "%-24s%9lu%6.1lf%%\n",
-                section_name_abbr(std::get<0>(s)).c_str(),
-                std::get<1>(s), std::get<1>(s) * 100.0 / total_size_);
-    }
-    fprintf(stdout, "%-24s%9lu%6.1lf%%\n",
-            "TOTAL", total_size_, total_size_ * 100.0 / total_size_);
 }
 
 
@@ -174,12 +138,14 @@ bool ElfSizer::size_of_ar(Elf *arf) {
         }
         // Skip archive's symbol table
         if (::strcmp(arhdr->ar_name, "/") == 0) {
+            add_section("[AR Symbol Table]", arhdr->ar_size);
             elf_next(elf);
             elf_end(elf);
             continue;
         }
         // Skip archive's string table
         if (::strcmp(arhdr->ar_name, "//") == 0) {
+            add_section("[AR Symbol Table]", arhdr->ar_size);
             elf_next(elf);
             elf_end(elf);
             continue;
@@ -195,10 +161,74 @@ bool ElfSizer::size_of_ar(Elf *arf) {
 }
 
 
+void ElfSizer::print() {
+    std::vector<SectionInfo> svec(sections_.size());
+    std::transform(sections_.begin(), sections_.end(), svec.begin(), [] (auto &e) {
+        return e.second;
+    });
+    std::sort(svec.begin(), svec.end(), [] (auto &l, auto &r) {
+        return std::get<1>(r) < std::get<1>(l);
+    });
+    for (auto &s : svec) {
+        if (!is_special(std::get<0>(s)) && std::get<1>(s) * 100.0 / total_size_ < 0.1) {
+            continue;
+        }
+        fprintf(stdout, "%-24s%9s%6.1lf%%\n",
+                section_name_abbr(std::get<0>(s)).c_str(),
+                bytes_format(std::get<1>(s)).c_str(),
+                std::get<1>(s) * 100.0 / total_size_);
+    }
+    fprintf(stdout, "%-24s%9s%6.1lf%%\n",
+            "TOTAL",
+            bytes_format(total_size_).c_str(),
+            total_size_ * 100.0 / total_size_);
+}
+
+
 void ElfSizer::add_section(std::string s, size_t size) {
     auto &info = sections_[s];
     std::get<0>(info) = s;
     std::get<1>(info) += size;
+    total_size_ += size;
+}
+
+
+std::string ElfSizer::section_name_abbr(const std::string &s) {
+    if (s.size() < 24) {
+        return s;
+    }
+    auto copy = s;
+    copy.resize(20);
+    copy += "...";
+    return copy;
+}
+
+
+std::string ElfSizer::bytes_format(size_t bytes) {
+    char buf[64];
+    auto *unit = "B";
+    auto len = snprintf(buf, sizeof(buf), "%lu%s", bytes, unit);
+
+    double value = bytes;
+    if ((bytes >> 20) != 0) {
+        value = bytes * 1.0 / (1UL << 20);
+        unit = "MB";
+    } else if ((bytes >> 10) != 0) {
+        value = bytes * 1.0 / (1UL << 10);
+        unit = "KB";
+    } else {
+        return std::string(buf, len);
+    }
+
+    int prec = 2;
+    if (value >= 100.) {
+        prec = 0;
+    } else if (value >= 10.) {
+        prec = 1;
+    }
+
+    len = snprintf(buf, sizeof(buf), "%.*lf%s", prec, value, unit);
+    return std::string(buf, len);
 }
 
 int main(int argc, char **argv) {
@@ -210,9 +240,7 @@ int main(int argc, char **argv) {
 
     for (auto i = 1; i < argc; i++) {
         if (argc > 2) {
-            auto headlen = ::strlen(argv[i]);
-            headlen = headlen < 40 ? 40 : headlen;
-            auto headline = std::string(headlen, '-');
+            auto headline = std::string(40, '-');
             fprintf(stdout, "%s\n", headline.c_str());
             fprintf(stdout, "%s\n", argv[i]);
             fprintf(stdout, "%s\n", headline.c_str());
