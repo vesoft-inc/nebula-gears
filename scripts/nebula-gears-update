@@ -24,5 +24,6 @@ nebula-gears-uninstall
 
 echo "Start installing lastest nebula-gears..."
 bash /tmp/nebula-gears-installer-latest.sh --prefix=$install_prefix
+echo "Current version is $(bash /tmp/nebula-gears-installer-latest.sh --version)"
 
 rm -f /tmp/nebula-gears-installer-latest.sh
