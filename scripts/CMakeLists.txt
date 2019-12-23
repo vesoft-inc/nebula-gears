@@ -20,6 +20,8 @@ install(
         distro-name
         distro-fullname
         distro-version
+        build-gcc
+        cxx-compiler-usability-test
         nebula-gears-update
         nebula-gears-uninstall
         nebula-gears-show-files

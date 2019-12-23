@@ -28,6 +28,7 @@ include(external/capstone.cmake)
 add_subdirectory(etc)
 add_subdirectory(scripts)
 add_subdirectory(src)
+add_subdirectory(share)
 
 execute_process(
     OUTPUT_VARIABLE FULL_VERSION
