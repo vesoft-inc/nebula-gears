@@ -24,6 +24,7 @@ add_compile_options(-Werror)
 include(GNUInstallDirs)
 include(ExternalProject)
 include(external/capstone.cmake)
+include(external/clang-build-analyzer.cmake)
 
 add_subdirectory(etc)
 add_subdirectory(scripts)
@@ -53,6 +54,8 @@ add_custom_target(
         make -s install/strip DESTDIR=${stage_dir}
     COMMAND
         mkdir -p ${stage_install_prefix}/${share_dir}
+    COMMAND
+        install -D ${CMAKE_BINARY_DIR}/external/install/bin/clang-build-analyzer ${stage_install_prefix}/bin
     COMMAND
         find ${stage_install_prefix} -type f -fprint ${stage_install_prefix}/${share_dir}/${installed_files_file}
     COMMAND
