@@ -21,6 +21,8 @@ install(
         distro-fullname
         distro-version
         build-gcc
+        install-gcc
+        build-llvm
         cxx-compiler-usability-test
         nebula-gears-update
         nebula-gears-uninstall

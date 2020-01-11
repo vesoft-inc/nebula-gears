@@ -1,0 +1,342 @@
+#! /usr/bin/env bash
+
+# Copyright (c) 2019 vesoft inc. All rights reserved.
+#
+# This source code is licensed under Apache 2.0 License,
+# attached with Common Clause Condition 1.0, found in the LICENSES directory.
+
+# Usage: build-llvm [--prefix=/opt]
+
+# Always use bash
+shell=$(basename $(readlink /proc/$$/exe))
+if [ ! x$shell = x"bash" ]
+then
+    bash $0 $@
+    exit $?
+fi
+
+this_dir=$(dirname $(readlink -f $0))
+
+[[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version=(\S*).*;\1;p' -rn)
+
+version_files_dir=$this_dir/../share/nebula-gears
+
+mapfile -t all_versions < <( ls -1 $version_files_dir/llvm-tarball-info-* | \
+                                awk -F'/' '{print $NF}' | \
+                                awk -F'-' '{print $NF}')
+
+[[ -z $version ]] && {
+    echo "Please specify the version you want to build with --version=x.y.z" 1>&2;
+    echo "Optional versions are: ${all_versions[@]}" 1>&2;
+    exit 1;
+}
+
+[[ $version = all ]] && version=(${all_versions[@]})
+if [[ ${#version[@]} -eq 1 ]]
+then
+    mapfile -t version < <(echo $version | tr ',' '\n')
+fi
+
+
+if [[ ${#version[@]} -gt 1 ]]
+then
+    exit_status=0
+    for v in ${version[@]}
+    do
+        $0 --prefix=$prefix --version=$v
+        [[ $? -ne 0 ]] && exit_status=$?
+    done
+    exit $exit_status
+fi
+
+version_file=$version_files_dir/llvm-tarball-info-$version
+[[ -f $version_file ]] || { echo "No version info file found at '$version_file'" 1>&2; exit 1; }
+source $version_file
+
+# Building directories setup
+cur_dir=$PWD
+root_dir=$PWD/toolset-build
+tarballs_dir=$root_dir/downloads
+source_dir=$root_dir/source/llvm-$llvm_version
+build_dir=$root_dir/build/$llvm_version
+prefix=/opt
+install_dir=${prefix}/vesoft/toolset/clang/$llvm_version
+stage_dir=$root_dir/stage
+logfile=$root_dir/llvm-build-$llvm_version.log
+gcc_install_prefix=/opt/vesoft/toolset/gcc/9.2.0
+glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
+distro=$(lsb_release -si)
+
+# Guess number of building jobs
+available_mem_mb=$(( $($this_dir/mem-available)/1024 ))
+physical_cores=$($this_dir/physical-cores)
+building_jobs_num=0
+[[ -n $available_mem_mb ]] && jobs_by_mem=$((available_mem_mb / 1024 / 2))
+[[ -n $physical_cores ]] && jobs_by_cpu=$physical_cores
+[[ -n $jobs_by_mem ]] && building_jobs_num=$jobs_by_mem
+[[ -n $jobs_by_cpu ]] && [[ $jobs_by_cpu -lt $jobs_by_mem ]] && building_jobs_num=$jobs_by_cpu
+[[ $building_jobs_num -eq 0 ]] && building_jobs_num=1
+
+# Download source tarballs
+function get_checksum {
+    md5sum $1 | cut -d ' ' -f 1
+}
+
+# args: <download command> <tarball> <url> <checksum>
+function fetch_tarball {
+    local checksum
+    [[ -f $2 ]] && checksum=$(get_checksum $2)
+    [[ -n $checksum ]] && [[ $checksum = $4 ]] && return 0
+    echo "Downloading $2..."
+    if ! bash -c "$1 $3"
+    then
+        echo "Download $2 Failed"
+        exit 1
+    fi
+}
+
+function fetch_tarballs {
+    hash wget &> /dev/null && download_cmd="wget -c --progress=bar:force:noscroll"
+    if [[ -z $download_cmd ]]
+    then
+        echo "'wget' not found for downloading" 1>&2;
+        exit 1;
+    fi
+    set +e
+    set +o pipefail
+    wget --help | grep -q '\--show-progress' && \
+            download_cmd="$download_cmd -q --show-progress"
+    set -e
+    set -o pipefail
+
+    mkdir -p $tarballs_dir && cd $tarballs_dir
+
+    fetch_tarball "$download_cmd" $llvm_tarball $llvm_url $llvm_checksum
+    fetch_tarball "$download_cmd" $clang_tarball $clang_url $clang_checksum
+    fetch_tarball "$download_cmd" $lld_tarball $lld_url $lld_checksum
+    fetch_tarball "$download_cmd" $compiler_rt_tarball $compiler_rt_url $compiler_rt_checksum
+    fetch_tarball "$download_cmd" $clang_tools_extra_tarball $clang_tools_extra_url $clang_tools_extra_checksum
+
+    cd $OLDPWD
+}
+
+function unpack_tarballs {
+    cd $tarballs_dir
+
+    if [[ ! -d $source_dir ]]
+    then
+        echo "Unpacking $llvm_tarball..."
+        mkdir -p $source_dir
+        tar -xf $llvm_tarball -C $source_dir --strip 1 || exit 1
+
+        echo "Unpacking $clang_tarball..."
+        mkdir -p $source_dir/tools/clang
+        tar -xf $clang_tarball -C $source_dir/tools/clang --strip 1 || exit 1
+
+        echo "Unpacking $lld_tarball..."
+        mkdir -p $source_dir/projects/lld
+        tar -xf $lld_tarball -C $source_dir/projects/lld --strip 1 || exit 1
+
+        echo "Unpacking $compiler_rt_tarball..."
+        mkdir -p $source_dir/projects/compiler-rt
+        tar -xf $compiler_rt_tarball -C $source_dir/projects/compiler-rt --strip 1 || exit 1
+
+        echo "Unpacking $clang_tools_extra_tarball..."
+        mkdir -p $source_dir/tools/clang/tools/extra
+        tar -xf $clang_tools_extra_tarball -C $source_dir/tools/clang/tools/extra --strip 1 || exit 1
+    fi
+
+    cd $OLDPWD
+}
+
+function patch_clang {
+    cd $source_dir/tools/clang
+    [[ -f clang-patch-done ]] && return 0
+    patch -p1  <<EOF
+diff -r -u a/lib/Sema/SemaExpr.cpp b/lib/Sema/SemaExpr.cpp
+--- a/lib/Sema/SemaExpr.cpp     2020-01-10 10:37:28.431023489 +0800
++++ b/lib/Sema/SemaExpr.cpp     2020-01-10 10:40:51.929000682 +0800
+@@ -3163,9 +3163,15 @@
+       break;
+     }
+
+-    return BuildDeclRefExpr(VD, type, valueKind, NameInfo, &SS, FoundD,
+-                            /*FIXME: TemplateKWLoc*/ SourceLocation(),
+-                            TemplateArgs);
++    DeclRefExpr *DRE = BuildDeclRefExpr(
++        VD, type, valueKind, NameInfo, &SS, FoundD,
++        /*FIXME: TemplateKWLoc*/ SourceLocation(), TemplateArgs);
++
++    // BuildDeclRefExpr may have deduced an auto variable's type. Patch back
++    // that type to avoid forming an expression with undeduced type.
++    if (isa<VarTemplateSpecializationDecl>(VD))
++      DRE->setType(VD->getType().getNonReferenceType());
++    return DRE;
+   }
+ }
+
+diff -r -u a/lib/Sema/SemaExprMember.cpp b/lib/Sema/SemaExprMember.cpp
+--- a/lib/Sema/SemaExprMember.cpp       2020-01-10 10:37:28.424023490 +0800
++++ b/lib/Sema/SemaExprMember.cpp       2020-01-10 10:51:43.279106699 +0800
+@@ -1160,11 +1160,17 @@
+   }
+   if (VarTemplateDecl *VarTempl = dyn_cast<VarTemplateDecl>(MemberDecl)) {
+     if (VarDecl *Var = getVarTemplateSpecialization(
+-            *this, VarTempl, TemplateArgs, MemberNameInfo, TemplateKWLoc))
+-      return BuildMemberExpr(
++            *this, VarTempl, TemplateArgs, MemberNameInfo, TemplateKWLoc)) {
++      MemberExpr *ME = BuildMemberExpr(
+           BaseExpr, IsArrow, OpLoc, &SS, TemplateKWLoc, Var, FoundDecl,
+           /*HadMultipleCandidates=*/false, MemberNameInfo,
+           Var->getType().getNonReferenceType(), VK_LValue, OK_Ordinary);
++
++      // BuildMemberExpr may have deduced an auto variable's type. Patch back
++      // that type to avoid forming an expression with undeduced type.
++      ME->setType(Var->getType().getNonReferenceType());
++      return ME;
++    }
+     return ExprError();
+   }
+EOF
+	touch clang-patch-done
+    cd $OLDPWD
+}
+
+function configure_llvm {
+    mkdir -p $build_dir
+    cd $build_dir
+    echo "Starting build LLVM-$llvm_version"
+    hash ccache && ccache_enable=ON || ccache_enable=OFF
+    cmake $source_dir                                               \
+        -DCMAKE_BUILD_TYPE=Release                                  \
+        -DLLVM_TARGETS_TO_BUILD="X86"                               \
+        -DLLVM_ENABLE_BINDINGS=OFF                                  \
+        -DLLVM_ENABLE_OCAMLDOC=OFF                                  \
+        -DLLVM_ENABLE_WARNINGS=OFF                                  \
+        -DLLVM_ENABLE_WERROR=OFF                                    \
+        -DCLANG_VENDOR="(VEsoft Inc. Build)"                        \
+        -DLLVM_HOST_TRIPLE=x86_64-vesoft-linux                      \
+        -DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-vesoft-linux            \
+        -DLLVM_ENABLE_Z3_SOLVER=OFF                                 \
+        -DLLVM_CCACHE_BUILD=$ccache_enable                          \
+        -DLLVM_ENABLE_TERMINFO=OFF                                  \
+        -DLLVM_ENABLE_LIBXML2=OFF                                   \
+        -DLLVM_ENABLE_OCAMLDOC=OFF                                  \
+        -DLLVM_BUILD_LLVM_DYLIB=ON                                  \
+        -DLLVM_LINK_LLVM_DYLIB=ON                                   \
+        -DLLVM_INSTALL_TOOLCHAIN_ONLY=OFF                           \
+        -DGCC_INSTALL_PREFIX=$install_dir                           \
+        -DCMAKE_INSTALL_PREFIX=$install_dir                         \
+        -DCMAKE_CXX_COMPILER=$gcc_install_prefix/bin/g++            \
+        -DCMAKE_C_COMPILER=$gcc_install_prefix/bin/gcc              \
+        -DCMAKE_EXE_LINKER_FLAGS='-static-libstdc++ -static-libgcc -Wl,-rpath=$ORIGIN/../lib64' # must be single-quoted
+
+    cd $OLDPWD
+}
+
+function build_llvm {
+    cd $build_dir
+
+    make -j $building_jobs_num
+
+    cd $OLDPWD
+}
+
+function stage_llvm {
+    cd $build_dir
+
+    make install -j $building_jobs_num DESTDIR=$stage_dir
+
+    cd $OLDPWD
+}
+
+function collect_gcc_installation {
+    cp -r $gcc_install_prefix/* $stage_dir/$install_dir
+}
+
+function make_package {
+    exec_file=$root_dir/vesoft-llvm-$llvm_version-$distro-x86_64-glibc-$glibc_version.sh
+    echo "Creating self-extractable package $exec_file"
+    cat > $exec_file <<EOF
+#! /usr/bin/env bash
+set -e
+
+#[[ \$# -ne 0 ]] && prefix=\$(echo "\$@" | sed -n 's;.*--prefix=(\S*).*;\1;p' -r)
+prefix=/opt/vesoft/toolset
+
+hash xz &> /dev/null || { echo "xz: Command not found"; exit 1; }
+
+mkdir -p \$prefix
+[[ -w \$prefix ]] || { echo "\$prefix: No permission to write"; exit 1; }
+
+archive_offset=\$(awk '/^__start_of_archive__$/{print NR+1; exit 0;}' \$0)
+tail -n+\$archive_offset \$0 | tar --numeric-owner -xJf - -C \$prefix
+
+echo "LLVM-$llvm_version has been installed to \$prefix/clang/$llvm_version"
+echo "Performing usability tests"
+CXX=\$prefix/clang/$llvm_version/bin/clang++ \$prefix/clang/$llvm_version/cxx-compiler-usability-test
+echo "Please run 'source \$prefix/clang/$llvm_version/enable' to start using."
+echo "Please run 'source \$prefix/clang/$llvm_version/disable' to stop using."
+
+exit 0
+
+__start_of_archive__
+EOF
+    cd $stage_dir/$install_dir/../..
+    if hash pxz &>/dev/null
+    then
+        tar cf - clang/$llvm_version | pxz -9 - >> $exec_file
+    elif xz --help | grep -q -- '--threads'
+    then
+        tar cf - clang/$llvm_version | xz -T $building_jobs_num -9 >> $exec_file
+    else
+        tar -cJf - clang/$llvm_version >> $exec_file
+    fi
+    chmod 0755 $exec_file
+    cd $OLDPWD
+}
+
+start_time=$(date +%s)
+fetch_tarballs
+unpack_tarballs
+[[ $llvm_version = "9.0.0" ]] && patch_clang
+configure_llvm
+build_llvm
+stage_llvm
+collect_gcc_installation
+
+cat > $stage_dir/$install_dir/enable <<EOF
+this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+[[ ":\$PATH:" =~ ":\$this_path/bin:" ]] || export PATH=\$this_path/bin:\$PATH
+export OLD_CC=\$CC
+export OLD_CXX=\$CXX
+export CC=\$this_path/bin/clang
+export CXX=\$this_path/bin/clang++
+hash -r
+echo "Only PATH was setup so as not to pollute your library path"
+echo "You could run 'export LD_LIBRARY_PATH=\$this_path/lib64:\\\$LD_LIBRARY_PATH' if needed"
+EOF
+
+cat > $stage_dir/$install_dir/disable <<EOF
+this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+export PATH=\$(echo \$PATH | sed "s#\$this_path/bin:##")
+export CC=\$OLD_CC
+export CXX=\$OLD_CXX
+[ -z \$CC ] && unset CC
+[ -z \$CXX ] && unset CXX
+hash -r
+EOF
+
+cat > $stage_dir/$install_dir/version-info <<EOF
+Package:        : LLVM-$llvm_version
+Distribution:   : $distro
+glibc:          : $glibc_version
+Arch:           : x86_64
+Vendor:         : VEsoft Inc.
+EOF
+
+make_package
+
+end_time=$(date +%s)
+
+echo "LLVM-$llvm_version has been successfully built after $((end_time - start_time)) seconds"
