@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+
+set -e
+set -o pipefail
+
+lastest_url=https://github.com/dutor/nebula-gears/releases/latest/download/nebula-gears-installer.sh
+
+echo "Start downloading lastest nebula-gears..."
+curl -Ls $lastest_url -# -o /tmp/nebula-gears-installer-latest.sh
+
+echo "Start installing lastest nebula-gears..."
+bash /tmp/nebula-gears-installer-latest.sh
+rm -f /tmp/nebula-gears-installer-latest.sh
