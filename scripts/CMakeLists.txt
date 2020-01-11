@@ -1,15 +1,11 @@
 install(
     FILES
-        syscheck
         core-execname
         core-bt
         core-bt-batch
-        core-save-to
         least-libc-version
         pthreads
         psyscall
-        system-info
-        arch-type
         package-type
         libc-version
         mem-total
