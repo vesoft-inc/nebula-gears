@@ -9,5 +9,5 @@ echo "Start downloading lastest nebula-gears..."
 curl -Ls $lastest_url -# -o /tmp/nebula-gears-installer-latest.sh
 
 echo "Start installing lastest nebula-gears..."
-bash /tmp/nebula-gears-installer-latest.sh
+bash /tmp/nebula-gears-installer-latest.sh $@
 rm -f /tmp/nebula-gears-installer-latest.sh
