@@ -27,7 +27,7 @@ this_dir=$(dirname $(readlink -f $0))
 
 version_files_dir=$this_dir/../share/nebula-gears
 [[ $# -ne 0 ]] && prefix=$(echo "$@" | sed 's;.*--prefix=(\S*).*;\1;p' -rn)
-prefix=${prefix:-/opt/vesoft/toolset}
+prefix=${prefix:-/opt}
 
 mapfile -t all_versions < <( ls -1 $version_files_dir/gcc-tarball-info-* | \
                                 awk -F'/' '{print $NF}' | \
