@@ -39,7 +39,7 @@ fi
 
 
 [[ $# -ne 0 ]] && prefix=$(echo "$@" | sed 's;.*--prefix=(\S*).*;\1;p' -rn)
-prefix=${prefix:-/usr/local}
+prefix=${prefix:-/opt}
 
 if [[ ${#version[@]} -gt 1 ]]
 then
@@ -64,7 +64,7 @@ tarballs_dir=$root_dir/downloads
 source_dir=$root_dir/source
 gcc_object_dir=$root_dir/gcc-build-$gcc_version
 bu_object_dir=$root_dir/binutils-build-$bu_version
-install_dir=${prefix:-$root_dir/install}/vesoft/toolset/gcc/$gcc_version
+install_dir=$prefix/vesoft/toolset/gcc/$gcc_version
 logfile=$root_dir/gcc-build-$gcc_version.log
 triplet=x86_64-vesoft-linux
 distro=$(lsb_release -si)
@@ -214,7 +214,7 @@ function configure_gcc {
 # Start building GCC
 function build_gcc {
     cd $gcc_object_dir
-    make -s -j $building_jobs_num bootstrap-lean
+    make -s -j $building_jobs_num bootstrap-clean
     [[ $? -ne 0 ]] && { echo "Failed to build GCC" 1>&2; exit 1; }
     cd $OLDPWD
 }
@@ -242,6 +242,7 @@ function configure_binutils {
         --disable-shared                        \
         --disable-nls                           \
         --enable-gold                           \
+        --enable-plugins                        \
         --enable-ld=default                     \
         --with-system-zlib                      \
         --build=$triplet                        \
@@ -315,8 +316,8 @@ tail -n+\$archive_offset \$0 | tar --numeric-owner -xJf - -C \$prefix
 echo "GCC-$gcc_version has been installed to \$prefix/gcc/$gcc_version"
 echo "Performing usability tests"
 CXX=\$prefix/gcc/$gcc_version/bin/g++ \$prefix/gcc/$gcc_version/cxx-compiler-usability-test
-echo "Run 'source \$prefix/gcc/$gcc_version/enable' to start using."
-echo "Run 'source \$prefix/gcc/$gcc_version/disable' to stop using."
+echo "Please run 'source \$prefix/gcc/$gcc_version/enable' to start using."
+echo "Please run 'source \$prefix/gcc/$gcc_version/disable' to stop using."
 
 exit 0
 
@@ -382,6 +383,14 @@ export CXX=\$OLD_CXX
 [ -z \$CC ] && unset CC
 [ -z \$CXX ] && unset CXX
 hash -r
+EOF
+
+cat > $install_dir/version-info <<EOF
+Package         : GCC $gcc_version
+Distribution    : $distro
+glibc           : $glibc_version
+Arch            : x86_64
+Vendor          : VEsoft Inc.
 EOF
 
 make_package

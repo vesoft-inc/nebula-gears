@@ -328,11 +328,11 @@ hash -r
 EOF
 
 cat > $stage_dir/$install_dir/version-info <<EOF
-Package:        : LLVM-$llvm_version
-Distribution:   : $distro
-glibc:          : $glibc_version
-Arch:           : x86_64
-Vendor:         : VEsoft Inc.
+Package         : LLVM-$llvm_version
+Distribution    : $distro
+glibc           : $glibc_version
+Arch            : x86_64
+Vendor          : VEsoft Inc.
 EOF
 
 make_package
