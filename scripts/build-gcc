@@ -186,10 +186,32 @@ function setup_deps {
     cd $OLDPWD
 }
 
+function version_cmp {
+    mapfile -t left < <( echo $1 | tr . '\n' )
+    mapfile -t right < <( echo $2 | tr . '\n')
+    local i
+    for i in ${!left[@]}
+    do
+        local lv=${left[$i]}
+        local rv=${right[$i]}
+        [[ -z $rv ]] && { echo $lv; return; }
+        [[ $lv -ne $rv ]] && { echo $((lv - rv)); return; }
+    done
+    ((i++))
+    rv=${right[$i]}
+    [[ ${#right[@]} -gt ${#left[@]} ]] && { echo $((0-rv)); return; }
+}
+
 # Configure GCC
 function configure_gcc {
     mkdir -p $gcc_object_dir
     cd $gcc_object_dir
+    local host_gcc_version=$(gcc -dumpfullversion -dumpversion)
+    local enable_lto=yes
+    if [[ $(version_cmp $host_gcc_version 4.5.0) -lt 0 ]]
+    then
+        enable_lto=no
+    fi
     $source_dir/gcc-$gcc_version/configure      \
         --prefix=$install_dir                   \
         --with-pkgversion="Nebula Graph Build"  \
@@ -198,7 +220,7 @@ function configure_gcc {
         --enable-__cxa_atexit                   \
         --enable-clocale=gnu                    \
         --enable-languages=c,c++                \
-        --enable-lto                            \
+        --enable-lto=$enable_lto                \
         --enable-bootstrap                      \
         --disable-nls                           \
         --disable-multilib                      \
