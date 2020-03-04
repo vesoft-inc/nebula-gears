@@ -68,6 +68,7 @@ install_dir=$prefix/vesoft/toolset/gcc/$gcc_version
 logfile=$root_dir/gcc-build-$gcc_version.log
 triplet=x86_64-vesoft-linux
 distro=$(lsb_release -si)
+glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
 
 # Guess number of building jobs
 available_mem_mb=$(( $($this_dir/mem-available)/1024 ))
@@ -214,7 +215,7 @@ function configure_gcc {
 # Start building GCC
 function build_gcc {
     cd $gcc_object_dir
-    make -s -j $building_jobs_num bootstrap-clean
+    make -s -j $building_jobs_num bootstrap-lean
     [[ $? -ne 0 ]] && { echo "Failed to build GCC" 1>&2; exit 1; }
     cd $OLDPWD
 }
@@ -293,9 +294,6 @@ function usability_test {
 
 # Build a self-extractable package
 function make_package {
-    set +e
-    glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
-    set -e
     exec_file=$root_dir/vesoft-gcc-$gcc_version-$distro-x86_64-glibc-$glibc_version.sh
     echo "Creating self-extractable package $exec_file"
     cat > $exec_file <<EOF
@@ -387,7 +385,7 @@ EOF
 
 cat > $install_dir/version-info <<EOF
 Package         : GCC $gcc_version
-Distribution    : $distro
+Distribution    : $distro $(lsb_release -sr)
 glibc           : $glibc_version
 Arch            : x86_64
 Vendor          : VEsoft Inc.
