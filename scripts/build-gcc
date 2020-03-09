@@ -207,10 +207,10 @@ function configure_gcc {
     mkdir -p $gcc_object_dir
     cd $gcc_object_dir
     local host_gcc_version=$(gcc -dumpfullversion -dumpversion)
-    local enable_lto=yes
+    local disable_lto=
     if [[ $(version_cmp $host_gcc_version 4.5.0) -lt 0 ]]
     then
-        enable_lto=no
+        disable_lto="--disable-lto"
     fi
     $source_dir/gcc-$gcc_version/configure      \
         --prefix=$install_dir                   \
@@ -219,8 +219,8 @@ function configure_gcc {
         --enable-threads=posix                  \
         --enable-__cxa_atexit                   \
         --enable-clocale=gnu                    \
-        --enable-languages=c,c++                \
-        --enable-lto=$enable_lto                \
+        --enable-languages=c,c++,lto            \
+        $disable_lto                            \
         --enable-bootstrap                      \
         --disable-nls                           \
         --disable-multilib                      \
