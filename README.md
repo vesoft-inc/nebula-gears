@@ -183,3 +183,28 @@ FPU
 
 180460 instructions disassembled
 ```
+
+
+# Build Toolset
+```shell
+$ git clone https://github.com/dutor/nebula-gears.git
+$ cd nebula-gears/docker/toolset/build
+
+# Build for all provided platforms
+$ make
+
+# Build for specific platform
+$ make centos-7
+```
+
+# Build Nebula Third Party
+```shell
+$ git clone https://github.com/dutor/nebula-gears.git
+$ cd nebula-gears/docker/third-party/build
+
+# Build for all provided platforms
+$ make
+
+# Build for specific platform
+$ make ubuntu-1604
+```
