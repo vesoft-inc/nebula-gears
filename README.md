@@ -114,4 +114,72 @@ TOTAL                      3.03MB 100.0%
 
 ## `elf-isa`
 ```shell
+$ elf-isa `which gcc`
+BASE
+      jp, jb, jae, jns, jmp, jne, hlt, ret, call, jl, jg, jbe, jge, je, js
+      ja, jle
+BMI
+      tzcnt
+CMOV
+      cmovg, cmovl, cmove, cmovns, cmovle, cmova, cmovb, cmovbe, cmovge
+      cmovae, cmovne, cmovs
+MODE64
+      leave, ret, lea, push, jmp, pop, call, movsxd
+SSE1
+      movups, movaps
+SSE2
+      subsd, pmovmskb, divsd, movdqu, pxor, movq, movsd, por, mulsd, pcmpeqb
+      addsd, movapd, movdqa, ucomisd
+SSE42
+      pcmpestri
+
+126139 instructions disassembled
+
+$ elf-isa `which elf-isa`
+BASE
+      bnd ret, jp, syscall, jb, jae, jrcxz, jmp, bnd call, bnd jmp, jne, hlt
+      jns, ret, js, je, call, jl, jge, jbe, jg, jle, bnd jns, ja
+AVX
+      vpcmpeqq, vpcmpistri, vpsrldq, vpxor, vpor, vpshufb, vpminub, vpslldq
+      vpmovmskb, vmovntdq, vmovdqa, vmovdqu, vpcmpgtb, vzeroupper, vpsubb, vmovq
+      vpand, vmovd, vptest, vpcmpeqb, vpandn
+AVX2
+      vpcmpeqd, vpbroadcastd, vpand, vpor, vpminud, vpxor, vpminub, vpcmpeqb
+      vpmovmskb, vpbroadcastb
+AVX512
+      vmovdqa64, vmovups, vbroadcastss, vmovntdq, vmovdqu64, vmovaps
+BMI
+      tzcnt
+CMOV
+      cmove, cmova, cmovle, cmovns, cmovbe, cmovb, cmovne, cmovae, cmovs
+      cmovge, cmovg, cmovl
+MODE64
+      bnd ret, bnd call, bnd jmp, leave, ret, lea, push, jmp, pop, call
+      movsxd
+SSE1
+      movss, divss, stmxcsr, movmskps, prefetchnta, prefetcht1, movaps
+      movups, prefetcht0, sfence
+SSE2
+      pcmpeqd, pcmpgtb, lfence, punpcklwd, pmaxub, pshufd, punpcklbw, movd
+      ucomisd, movq, psubb, subsd, pcmpeqb, cvttsd2si, andnpd, movdqu, pminub
+      pxor, movapd, addsd, movsd, orpd, movmskpd, movntdq, movlpd, andpd, movhpd
+      comisd, psrldq, cmpnlesd, pmovmskb, pand, pslldq, movdqa, por
+SSE3
+      lddqu
+SSE41
+      pminud, ptest
+SSE42
+      pcmpistri
+SSSE3
+      pshufb
+NOT64BITMODE
+      xchg
+NOVLX
+      vpcmpeqq, vpand, vpor, vpminub, vpxor, vpminud, vpcmpeqb, vpandn
+      vpsubb, vmovntdq, vpcmpgtb, vpcmpeqd
+FPU
+      wait, fxam, fabs, fucomi, fdiv, fucompi, fld, fstp, fild, fxch, fnstenv
+      fcomi, fldz, fldenv, fmul, fadd, fmulp, fldcw
+
+180460 instructions disassembled
 ```
