@@ -322,7 +322,7 @@ function make_package {
 #! /usr/bin/env bash
 set -e
 
-[[ \$# -ne 0 ]] && prefix=\$(echo "\$@" | sed 's;.*--prefix=(\S*).*;\1;' -r)
+[[ \$# -ne 0 ]] && prefix=\$(echo "\$@" | sed 's;.*--prefix=(\S*).*;\1;p' -rn)
 prefix=\${prefix:-/opt}/vesoft/toolset
 
 hash xz &> /dev/null || { echo "xz: Command not found"; exit 1; }

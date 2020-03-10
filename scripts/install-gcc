@@ -144,6 +144,6 @@ $download_cmd $url
     exit 1
 }
 
-bash $selected_archive $@
+bash $selected_archive --prefix=$prefix
 
 rm -rf $selected_archive
