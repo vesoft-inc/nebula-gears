@@ -195,7 +195,12 @@ $ make
 
 # Build for specific platform
 $ make centos-7
+
+# Build GCC 9.1.0 and GCC 8.3.0
+$ make BUILD_GCC_VERSIONS=8.3.0,9.1.0 centos-6
 ```
+
+After the build succeeds, all resulting packages will be located in the `$PWD/toolset-packages` subdirectory. If you want the packages uploaded to the OSS repository for public access, the `$HOME/.ossutilconfig` file must exists, which holds the necessary access tokens.
 
 # Build Nebula Third Party
 ```shell
@@ -207,4 +212,9 @@ $ make
 
 # Build for specific platform
 $ make ubuntu-1604
+
+# Build with GCC 7.5.0 and 9.2.0
+$ make USE_GCC_VERSIONS=7.5.0,9.2.0 ubuntu-1804
 ```
+
+After the build succeeds, all resulting packages will be located in the `$PWD/third-party-packages` subdirectory. If you want the packages uploaded to the OSS repository for public access, the `$HOME/.ossutilconfig` file must exists, which holds the necessary access tokens.

@@ -4,7 +4,7 @@ all: $(tags)
 
 build-%: %.Dockerfile
 	@echo '******************' Build image $* '********************'
-	@docker build -t dutor/third-party-build:$* -f $*.Dockerfile .
+	@docker build --no-cache -t dutor/third-party-build:$* -f $*.Dockerfile .
 
 push-%: build-%
 	@echo '******************' Pushing image $* '********************'
