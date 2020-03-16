@@ -8,7 +8,7 @@ oss_secret := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^accessKeySecret=
 
 docker_cmd := docker run -v $$PWD/third-party-packages:/data
 ifneq ($(oss_endpoint),)
-	docker_cmd = docker run -e OSS_ENDPOINT=$(oss_endpoint) -e OSS_ID=$(oss_id) -e OSS_SECRET=$(oss_secret)
+	docker_cmd += -e OSS_ENDPOINT=$(oss_endpoint) -e OSS_ID=$(oss_id) -e OSS_SECRET=$(oss_secret)
 endif
 ifneq ($(USE_GCC_VERSIONS),)
 	docker_cmd += -e USE_GCC_VERSIONS=$(USE_GCC_VERSIONS)

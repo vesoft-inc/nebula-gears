@@ -51,6 +51,8 @@ set(installed_files_file "installed_files")
 add_custom_target(
     package
     COMMAND
+        make -s
+    COMMAND
         make -s install/strip DESTDIR=${stage_dir}
     COMMAND
         mkdir -p ${stage_install_prefix}/${share_dir}

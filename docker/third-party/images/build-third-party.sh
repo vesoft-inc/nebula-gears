@@ -15,12 +15,12 @@ export PATH=$PWD/cmake-3.15.5/bin:$PATH
 
 for v in $(echo $versions | tr ',' ' ')
 do
-    source /opt/vesoft/toolset/gcc/$v/enable;
+    source /opt/vesoft/toolset/gcc/$v/enable
     rm -rf /opt/vesoft/third-party
     build_package=1 disable_cxx11_abi=0 nebula/third-party/build-third-party.sh /opt/vesoft/third-party
     rm -rf /opt/vesoft/third-party
     build_package=1 disable_cxx11_abi=1 nebula/third-party/build-third-party.sh /opt/vesoft/third-party
-    source /opt/vesoft/toolset/gcc/$v/disable;
+    source /opt/vesoft/toolset/gcc/$v/disable
 done
 
 cp -v third-party/vesoft-third-party-*.sh /data

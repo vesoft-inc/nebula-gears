@@ -6,9 +6,9 @@ oss_endpoint := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^endpoint=(.*);
 oss_id := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^accessKeyID=(.*);\1;p' -rn $$HOME/.ossutilconfig)
 oss_secret := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^accessKeySecret=(.*);\1;p' -rn $$HOME/.ossutilconfig)
 
-docker_cmd := docker run -v $$PWD/toolset-packages:/data -e LOCATION=/data
+docker_cmd := docker run -v $$PWD/toolset-packages:/data
 ifneq ($(oss_endpoint),)
-	docker_cmd += docker run -e OSS_ENDPOINT=$(oss_endpoint) -e OSS_ID=$(oss_id) -e OSS_SECRET=$(oss_secret)
+	docker_cmd += -e OSS_ENDPOINT=$(oss_endpoint) -e OSS_ID=$(oss_id) -e OSS_SECRET=$(oss_secret)
 endif
 ifneq ($(BUILD_GCC_VERSIONS),)
 	docker_cmd += -e BUILD_GCC_VERSIONS=$(BUILD_GCC_VERSIONS)
