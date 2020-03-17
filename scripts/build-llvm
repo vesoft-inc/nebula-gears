@@ -206,7 +206,7 @@ function configure_llvm {
     mkdir -p $build_dir
     cd $build_dir
     echo "Starting build LLVM-$llvm_version"
-    hash ccache && ccache_enable=ON || ccache_enable=OFF
+    hash ccache &>/dev/null && ccache_enable=ON || ccache_enable=OFF
     cmake $source_dir                                               \
         -DCMAKE_BUILD_TYPE=Release                                  \
         -DLLVM_TARGETS_TO_BUILD="X86"                               \
