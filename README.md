@@ -186,23 +186,35 @@ FPU
 
 
 # Build Toolset
+Currently, _Nebula_ toolset build consists of GCC and LLVM on various Linux platforms:
+  * CentOS 6/7 for GCC, and CentOS 6/7/8 for LLVM
+  * Debian 7/8 for GCC, and Debian 8/9/10 for LLVM
+
 ```shell
 $ git clone https://github.com/dutor/nebula-gears.git
 $ cd nebula-gears/docker/toolset/build
 
-# Build for all provided platforms
+# Build GCC and LLVM for all provided platforms
 $ make
 
-# Build for specific platform
+# Build GCC and LLVM for specific platform
 $ make centos-7
 
-# Build GCC 9.1.0 and GCC 8.3.0
-$ make BUILD_GCC_VERSIONS=8.3.0,9.1.0 centos-6
+# Only build GCC
+$ make gcc-centos-7
+
+# Build GCC 9.1.0 and 8.3.0, LLVM 9.0.0
+$ make BUILD_GCC_VERSIONS=8.3.0,9.1.0 BUILD_LLVM_VERSIONS=9.0.0 centos-6
 ```
 
 After the build succeeds, all resulting packages will be located in the `$PWD/toolset-packages` subdirectory. If you want the packages uploaded to the OSS repository for public access, the `$HOME/.ossutilconfig` file must exists, which holds the necessary access tokens.
 
 # Build Nebula Third Party
+
+Currently, _Nebula_ third party build supports various Linux platforms:
+  * Centos 6/7
+  * Ubuntu 1604/1804
+
 ```shell
 $ git clone https://github.com/dutor/nebula-gears.git
 $ cd nebula-gears/docker/third-party/build

@@ -20,7 +20,11 @@ RUN yum install -y make \
 				   bison \
 				   flex \
 				   gperf \
-				   gettext
+				   gettext \
+                   centos-release-scl \
+                   epel-release
+RUN yum install -y python27
+RUN yum install -y pxz || true
 
 ENV NG_URL=https://raw.githubusercontent.com/dutor/nebula-gears/master/install
 ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64
@@ -32,6 +36,9 @@ WORKDIR ${PACKAGE_DIR}
 
 COPY build-gcc.sh ${PACKAGE_DIR}/build-gcc.sh
 RUN chmod +x ${PACKAGE_DIR}/build-gcc.sh
+
+COPY build-llvm.sh ${PACKAGE_DIR}/build-llvm.sh
+RUN chmod +x ${PACKAGE_DIR}/build-llvm.sh
 
 COPY oss-upload.sh ${PACKAGE_DIR}/oss-upload.sh
 RUN chmod +x ${PACKAGE_DIR}/oss-upload.sh

@@ -1,7 +1,5 @@
-FROM debian:7
+FROM debian:9
 SHELL ["/bin/bash", "-c"]
-RUN echo "deb http://archive.debian.org/debian wheezy main" > /etc/apt/sources.list
-RUN echo "deb http://archive.debian.org/debian-archive/debian-security/ wheezy updates/main" >> /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get install -y make \
                        git \
@@ -10,6 +8,7 @@ RUN apt-get install -y make \
                        unzip \
                        curl \
                        xz-utils \
+                       pxz \
                        patch \
                        lsb-core \
                        libz-dev \

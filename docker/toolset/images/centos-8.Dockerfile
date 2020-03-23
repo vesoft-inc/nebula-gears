@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:8
 SHELL ["/bin/bash", "-c"]
 RUN yum update -y
 RUN yum install -y make \
@@ -9,7 +9,7 @@ RUN yum install -y make \
 				   bzip2 \
 				   xz \
 				   patch \
-				   python \
+				   python2 \
 				   redhat-lsb-core \
 				   zlib-devel \
 				   gcc \
@@ -19,11 +19,13 @@ RUN yum install -y make \
 				   automake \
 				   bison \
 				   flex \
-				   gperf \
 				   gettext \
-                   epel-release
+                   epel-release \
+                   yum-utils
 
-RUN yum install -y pxz || true
+RUN yum config-manager --set-enabled PowerTools
+RUN yum update -y
+RUN yum install -y gperf
 
 ENV NG_URL=https://raw.githubusercontent.com/dutor/nebula-gears/master/install
 ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64

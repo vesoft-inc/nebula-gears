@@ -1,6 +1,8 @@
-tags=centos-6 centos-7 debian-7 debian-8
+tags=centos-6 centos-7 centos-8 debian-7 debian-8 debian-9 debian-10
 
 all: $(tags)
+
+.PHONY: all
 
 oss_endpoint := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^endpoint=(.*);\1;p' -rn $$HOME/.ossutilconfig)
 oss_id := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^accessKeyID=(.*);\1;p' -rn $$HOME/.ossutilconfig)
@@ -13,7 +15,16 @@ endif
 ifneq ($(BUILD_GCC_VERSIONS),)
 	docker_cmd += -e BUILD_GCC_VERSIONS=$(BUILD_GCC_VERSIONS)
 endif
+ifneq ($(BUILD_LLVM_VERSIONS),)
+	docker_cmd += -e BUILD_LLVM_VERSIONS=$(BUILD_LLVM_VERSIONS)
+endif
 
-%:
-	@echo '******************' Build Nebula Toolset For $* '********************'
+%: gcc-% llvm-% ;
+
+gcc-%:
+	@echo '******************' Build Nebula Toolset/GCC For $* '********************'
 	@$(docker_cmd) --rm -it dutor/toolset-build:$* ./build-gcc.sh
+
+llvm-%:
+	@echo '******************' Build Nebula Toolset/LLVM For $* '********************'
+	@$(docker_cmd) --rm -it dutor/toolset-build:$* ./build-llvm.sh

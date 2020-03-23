@@ -34,3 +34,4 @@
 build
 
 !docker/*/build
+docker/*/build/*-packages
