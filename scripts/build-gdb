@@ -1,0 +1,318 @@
+#! /usr/bin/env bash
+
+# Copyright (c) 2019 vesoft inc. All rights reserved.
+#
+# This source code is licensed under Apache 2.0 License,
+# attached with Common Clause Condition 1.0, found in the LICENSES directory.
+
+# Usage: build-gdb --version=<v1,v2|all>
+
+# Always use bash
+shell=$(basename $(readlink /proc/$$/exe))
+if [ ! x$shell = x"bash" ]
+then
+    bash $0 $@
+    exit $?
+fi
+
+this_dir=$(dirname $(readlink -f $0))
+
+[[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version=(\S*).*;\1;p' -rn)
+
+version_files_dir=$this_dir/../share/nebula-gears
+
+mapfile -t all_versions < <( ls -1 $version_files_dir/gdb-tarball-info-* | \
+                                awk -F'/' '{print $NF}' | \
+                                awk -F'-' '{print $NF}')
+
+[[ -z $version ]] && {
+    echo "Please specify the version you want to build with --version=x.y.z" 1>&2;
+    echo "Optional versions are: ${all_versions[@]}" 1>&2;
+    exit 1;
+}
+
+[[ $version = all ]] && version=(${all_versions[@]})
+if [[ ${#version[@]} -eq 1 ]]
+then
+    mapfile -t version < <(echo $version | tr ',' '\n')
+fi
+
+
+if [[ ${#version[@]} -gt 1 ]]
+then
+    exit_status=0
+    for v in ${version[@]}
+    do
+        $0 --version=$v
+        [[ $? -ne 0 ]] && exit_status=$?
+    done
+    exit $exit_status
+fi
+
+version_file=$version_files_dir/gdb-tarball-info-$version
+[[ -f $version_file ]] || { echo "No version info file found at '$version_file'" 1>&2; exit 1; }
+source $version_file
+
+# Building directories setup
+cur_dir=$PWD
+root_dir=$PWD/toolset-build
+tarballs_dir=$root_dir/downloads
+source_dir=$root_dir/source
+gdb_object_dir=$root_dir/gdb-build-$gdb_version
+install_dir=/opt/vesoft/toolset/gdb/$gdb_version
+stage_dir=$root_dir/stage
+logfile=$root_dir/gdb-build-$gdb_version.log
+triplet=x86_64-vesoft-linux
+distro=$(lsb_release -si)
+glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
+
+# Guess number of building jobs
+available_mem_mb=$(( $($this_dir/mem-available)/1024 ))
+physical_cores=$($this_dir/physical-cores)
+building_jobs_num=0
+[[ -n $available_mem_mb ]] && jobs_by_mem=$((available_mem_mb / 1024 / 2))
+[[ -n $physical_cores ]] && jobs_by_cpu=$physical_cores
+[[ -n $jobs_by_mem ]] && building_jobs_num=$jobs_by_mem
+[[ -n $jobs_by_cpu ]] && [[ $jobs_by_cpu -lt $jobs_by_mem ]] && building_jobs_num=$jobs_by_cpu
+[[ $building_jobs_num -eq 0 ]] && building_jobs_num=1
+
+# Download source tarballs
+function get_checksum {
+    md5sum $1 | cut -d ' ' -f 1
+}
+
+# args: <download command> <tarball> <url> <checksum>
+function fetch_tarball {
+    local checksum
+    [[ -f $2 ]] && checksum=$(get_checksum $2)
+    [[ -n $checksum ]] && [[ $checksum = $4 ]] && return 0
+    echo "Downloading $2..."
+    if ! bash -c "$1 $3"
+    then
+        echo "Download $2 Failed"
+        exit 1
+    fi
+}
+
+function fetch_tarballs {
+    hash wget &> /dev/null && download_cmd="wget -c --progress=bar:force:noscroll"
+    if [[ -z $download_cmd ]]
+    then
+        echo "'wget' not found for downloading" 1>&2;
+        exit 1;
+    fi
+    set +e
+    set +o pipefail
+    wget --help | grep -q '\--show-progress' && \
+            download_cmd="$download_cmd -q --show-progress"
+    set -e
+    set -o pipefail
+
+    mkdir -p $tarballs_dir && cd $tarballs_dir
+
+    fetch_tarball "$download_cmd" $gdb_tarball $gdb_url $gdb_checksum
+    fetch_tarball "$download_cmd" $gmp_tarball $gmp_url $gmp_checksum
+    fetch_tarball "$download_cmd" $mpfr_tarball $mpfr_url $mpfr_checksum
+
+    cd $OLDPWD
+}
+
+# Unpack source tarballs
+function unpack_tarballs {
+    mkdir -p $source_dir
+    cd $tarballs_dir
+
+    if [[ ! -d $source_dir/gdb-$gdb_version ]]
+    then
+        echo "Unpacking $gdb_tarball..."
+        tar -xf $gdb_tarball -C $source_dir || exit 1
+    fi
+
+    if [[ ! -d $source_dir/gmp-$gmp_version ]]
+    then
+        echo "Unpacking $gmp_tarball..."
+        tar -xf $gmp_tarball -C $source_dir || exit 1
+    fi
+
+    if [[ ! -d $source_dir/mpfr-$mpfr_version ]]
+    then
+        echo "Unpacking $mpfr_tarball..."
+        tar -xf $mpfr_tarball -C $source_dir || exit 1
+    fi
+
+    cd $OLDPWD
+}
+
+# Necessary dependency setup
+function setup_deps {
+    cd $source_dir/gdb-$gdb_version
+    ln -sf ../gmp-$gmp_version gmp
+    ln -sf ../mpfr-$mpfr_version mpfr
+
+    cd $OLDPWD
+
+    # Tweak GMP to not build with native code
+    cd $source_dir/gmp-$gmp_version
+    cp -f configfsf.guess config.guess
+    cp -f configfsf.sub config.sub
+
+    cd $OLDPWD
+}
+
+function version_cmp {
+    mapfile -t left < <( echo $1 | tr . '\n' )
+    mapfile -t right < <( echo $2 | tr . '\n')
+    local i
+    for i in ${!left[@]}
+    do
+        local lv=${left[$i]}
+        local rv=${right[$i]}
+        [[ -z $rv ]] && { echo $lv; return; }
+        [[ $lv -ne $rv ]] && { echo $((lv - rv)); return; }
+    done
+    ((i++))
+    rv=${right[$i]}
+    [[ ${#right[@]} -gt ${#left[@]} ]] && { echo $((0-rv)); return; }
+}
+
+# Configure GDB
+function configure_gdb {
+    mkdir -p $gdb_object_dir
+    cd $gdb_object_dir
+    $source_dir/gdb-$gdb_version/configure          \
+        --prefix=$install_dir                       \
+        --with-pkgversion="Nebula Graph Build"      \
+        --with-system-gdbinit=/etc/gdbinit          \
+        --with-system-gdbinit-dir=/etc/gdbinit.d    \
+        --with-python                               \
+        --with-system-readline=no                   \
+        --with-system-zlib=no                       \
+        --enable-static                             \
+        --disable-shared                            \
+        --disable-interprocess-agent                \
+        --disable-libcc1                            \
+        --disable-gdbserver                         \
+        --disable-nls                               \
+        --disable-multilib                          \
+        --disable-install-libiberty                 \
+        --disable-install-libopcodes                \
+        --disable-install-libbfd                    \
+        --build=$triplet                            \
+        --host=$triplet                             \
+        --target=$triplet                           \
+        --disable-unit-tests                        \
+        --disable-sim                               \
+        --disable-debug                             \
+        --disable-werror
+    [[ $? -ne 0 ]] && { echo "Failed to configure GDB" 1>&2;  exit 1; }
+    cd $OLDPWD
+}
+
+# Start building GDB
+function build_gdb {
+    cd $gdb_object_dir
+    make -s -j $building_jobs_num
+    [[ $? -ne 0 ]] && { echo "Failed to build GDB" 1>&2; exit 1; }
+    cd $OLDPWD
+}
+
+# Install GDB
+function stage_gdb {
+    cd $gdb_object_dir
+    make MAKEINFO=true -s -j $building_jobs_num install-strip-gdb DESTDIR=$stage_dir
+    [[ $? -ne 0 ]] && { echo "Failed to install GDB" 1>&2; exit 1; }
+    cd $OLDPWD
+}
+
+
+# Finalize the building
+function finalize {
+    # Remove all of the annoying libtool files,
+    # so that the installation could be copied around
+    find $stage_dir/$install_dir -name '*.la' | xargs rm -f
+}
+
+# Build a self-extractable package
+function make_package {
+    exec_file=$root_dir/vesoft-gdb-$gdb_version-$distro-x86_64-glibc-$glibc_version.sh
+    echo "Creating self-extractable package $exec_file"
+    cat > $exec_file <<EOF
+#! /usr/bin/env bash
+set -e
+
+[[ \$# -ne 0 ]] && prefix=\$(echo "\$@" | sed 's;.*--prefix=(\S*).*;\1;p' -rn)
+prefix=\${prefix:-/opt}/vesoft/toolset
+
+hash xz &> /dev/null || { echo "xz: Command not found"; exit 1; }
+
+mkdir -p \$prefix
+[[ -w \$prefix ]] || { echo "\$prefix: No permission to write"; exit 1; }
+
+archive_offset=\$(awk '/^__start_of_archive__$/{print NR+1; exit 0;}' \$0)
+tail -n+\$archive_offset \$0 | tar --numeric-owner -xJf - -C \$prefix
+
+echo "GDB-$gdb_version has been installed to \$prefix/gdb/$gdb_version"
+echo "Please run 'source \$prefix/gdb/$gdb_version/enable' to start using."
+echo "Please run 'source \$prefix/gdb/$gdb_version/disable' to stop using."
+
+exit 0
+
+__start_of_archive__
+EOF
+    cd $stage_dir/$install_dir/../..
+    tar -cJf - gdb/$gdb_version >> $exec_file
+    chmod 0755 $exec_file
+    cd $OLDPWD
+}
+
+start_time=$(date +%s)
+set -e
+set -o pipefail
+trap '[[ $? -ne 0 ]] && echo "Building failed, see '$logfile' for more details." 1>&2' EXIT
+
+mkdir -p $root_dir
+
+fetch_tarballs
+{
+    unpack_tarballs
+    setup_deps
+}   |& tee $logfile
+
+exec &> >(sed "s/^/\[GDB-$gdb_version\] /")
+
+echo "Starting build GDB-$gdb_version with $building_jobs_num jobs"
+
+{
+    configure_gdb
+    build_gdb
+    stage_gdb
+
+    finalize
+}   |& tee -a $logfile \
+    | grep --line-buffered '^Making\|^Configuring\|^Comparing\|^Comparison\|^Failed to'
+
+cat > $stage_dir/$install_dir/enable <<EOF
+this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+[[ ":\$PATH:" =~ ":\$this_path/bin:" ]] || export PATH=\$this_path/bin:\$PATH
+hash -r
+EOF
+
+cat > $stage_dir/$install_dir/disable <<EOF
+this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+export PATH=\$(echo \$PATH | sed "s#\$this_path/bin:##")
+hash -r
+EOF
+
+cat > $stage_dir/$install_dir/version-info <<EOF
+Package         : GDB $gdb_version
+Distribution    : $distro $(lsb_release -sr)
+glibc           : $glibc_version
+Arch            : x86_64
+Vendor          : VEsoft Inc.
+EOF
+
+make_package
+end_time=$(date +%s)
+
+echo "GDB-$gdb_version has been installed to $stage_dir/$install_dir"
+echo "$((end_time - start_time)) seconds been taken."

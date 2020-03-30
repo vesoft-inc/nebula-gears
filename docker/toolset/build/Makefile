@@ -28,3 +28,7 @@ gcc-%:
 llvm-%:
 	@echo '******************' Build Nebula Toolset/LLVM For $* '********************'
 	@$(docker_cmd) --rm -it dutor/toolset-build:$* ./build-llvm.sh
+
+gdb-%:
+	@echo '******************' Build Nebula Toolset/LLVM For $* '********************'
+	@$(docker_cmd) --rm -it dutor/toolset-build:$* ./build-gdb.sh

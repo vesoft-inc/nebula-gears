@@ -33,6 +33,9 @@ WORKDIR ${PACKAGE_DIR}
 COPY build-gcc.sh ${PACKAGE_DIR}/build-gcc.sh
 RUN chmod +x ${PACKAGE_DIR}/build-gcc.sh
 
+COPY build-gdb.sh ${PACKAGE_DIR}/build-gdb.sh
+RUN chmod +x ${PACKAGE_DIR}/build-gdb.sh
+
 COPY build-llvm.sh ${PACKAGE_DIR}/build-llvm.sh
 RUN chmod +x ${PACKAGE_DIR}/build-llvm.sh
 
