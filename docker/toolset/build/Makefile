@@ -19,7 +19,7 @@ ifneq ($(BUILD_LLVM_VERSIONS),)
 	docker_cmd += -e BUILD_LLVM_VERSIONS=$(BUILD_LLVM_VERSIONS)
 endif
 
-%: gcc-% llvm-% ;
+%: gcc-% llvm-% gdb-%;
 
 gcc-%:
 	@echo '******************' Build Nebula Toolset/GCC For $* '********************'
@@ -30,5 +30,5 @@ llvm-%:
 	@$(docker_cmd) --rm -it dutor/toolset-build:$* ./build-llvm.sh
 
 gdb-%:
-	@echo '******************' Build Nebula Toolset/LLVM For $* '********************'
+	@echo '******************' Build Nebula Toolset/GDB For $* '********************'
 	@$(docker_cmd) --rm -it dutor/toolset-build:$* ./build-gdb.sh

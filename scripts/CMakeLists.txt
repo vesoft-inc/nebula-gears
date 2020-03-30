@@ -20,6 +20,7 @@ install(
         install-gcc
         build-llvm
         install-llvm
+        build-gdb
         cxx-compiler-usability-test
         nebula-gears-update
         nebula-gears-uninstall

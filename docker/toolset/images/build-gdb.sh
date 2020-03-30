@@ -19,6 +19,9 @@ this_dir=$(dirname $(readlink -f $0))
 
 versions=${BUILD_GDB_VERSIONS:-all}
 
+install-gcc --version=9.2.0
+source /opt/vesoft/toolset/gcc/9.2.0/enable
+
 build-gdb --version=$versions
 
 
