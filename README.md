@@ -54,6 +54,16 @@ $ install-llvm --version=all
 ...
 ```
 
+
+## `install-gdb`
+Installation of GDB is not relocatable, and will be installed at `/opt/vesoft/toolset/gdb/x.y.z`.
+```shell
+$ install-gdb --version=8.3
+GDB-8.3 has been installed to /opt/vesoft/toolset/gdb/8.3
+Please run 'source /opt/vesoft/toolset/gdb/8.3/enable' to start using.
+Please run 'source /opt/vesoft/toolset/gdb/8.3/disable' to stop using.
+```
+
 ## `elf-size`
 ```shell
 $ elf-size bin/nebula-graphd
