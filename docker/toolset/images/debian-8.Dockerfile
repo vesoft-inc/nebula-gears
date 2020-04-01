@@ -8,8 +8,8 @@ RUN apt-get install -y make \
                        unzip \
                        curl \
                        xz-utils \
-                       liblzma-dev ]
-                       python-dev ]
+                       liblzma-dev \
+                       python-dev \
                        patch \
                        lsb-core \
                        libz-dev \
