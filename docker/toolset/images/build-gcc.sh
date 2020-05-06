@@ -2,6 +2,8 @@
 
 set -e
 
+nebula-gears-update
+
 release="$(lsb_release -si) $(lsb_release -sr)"
 if [[ "$release" =~ "CentOS 8" ]]
 then

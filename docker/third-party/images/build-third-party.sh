@@ -4,6 +4,8 @@ this_dir=$(dirname $(readlink -f $0))
 
 set -e
 
+nebula-gears-update
+
 git clone --depth=1 https://github.com/vesoft-inc/nebula.git
 
 versions=${USE_GCC_VERSIONS:-7.1.0,7.5.0,8.3.0,9.1.0,9.2.0}
