@@ -14,6 +14,7 @@ install(
         nebula-gears/gcc-tarball-info-9.2.0
         nebula-gears/llvm-tarball-info-8.0.0
         nebula-gears/llvm-tarball-info-9.0.0
+        nebula-gears/llvm-tarball-info-10.0.0
         nebula-gears/gdb-tarball-info-8.3
     PERMISSIONS
         OWNER_READ OWNER_WRITE
