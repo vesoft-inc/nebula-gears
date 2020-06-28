@@ -306,7 +306,14 @@ stage_llvm
 collect_gcc_installation
 
 cat > $stage_dir/$install_dir/enable <<EOF
-this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+if [ -n "\$ZSH_VERSION" ]; then
+    CURRENT=\${(%):-%N}
+elif [ -n "\$BASH_VERSION" ]; then
+    CURRENT=\$BASH_SOURCE
+else
+    echo "Not Supported shell \$SHELL"
+fi
+this_path=\$(dirname \$(readlink -f \$CURRENT))
 [[ ":\$PATH:" =~ ":\$this_path/bin:" ]] || export PATH=\$this_path/bin:\$PATH
 export OLD_CC=\$CC
 export OLD_CXX=\$CXX
@@ -318,7 +325,14 @@ echo "You could run 'export LD_LIBRARY_PATH=\$this_path/lib64:\\\$LD_LIBRARY_PAT
 EOF
 
 cat > $stage_dir/$install_dir/disable <<EOF
-this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+if [ -n "\$ZSH_VERSION" ]; then
+    CURRENT=\${(%):-%N}
+elif [ -n "\$BASH_VERSION" ]; then
+    CURRENT=\$BASH_SOURCE
+else
+    echo "Not Supported shell \$SHELL"
+fi
+this_path=\$(dirname \$(readlink -f \$CURRENT))
 export PATH=\$(echo \$PATH | sed "s#\$this_path/bin:##")
 export CC=\$OLD_CC
 export CXX=\$OLD_CXX
