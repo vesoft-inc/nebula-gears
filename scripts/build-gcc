@@ -229,6 +229,7 @@ function configure_gcc {
         --build=$triplet                        \
         --host=$triplet                         \
         --target=$triplet                       \
+        --enable-frame-pointer                  \
         --disable-werror
     [[ $? -ne 0 ]] && { echo "Failed to configure GCC" 1>&2;  exit 1; }
     cd $OLDPWD
