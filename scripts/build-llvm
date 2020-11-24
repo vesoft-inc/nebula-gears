@@ -66,6 +66,7 @@ logfile=$root_dir/llvm-build-$llvm_version.log
 gcc_install_prefix=/opt/vesoft/toolset/gcc/9.2.0
 glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
 distro=$(lsb_release -si)
+arch=$(uname -m)
 
 # Guess number of building jobs
 available_mem_mb=$(( $($this_dir/mem-available)/1024 ))
@@ -207,16 +208,17 @@ function configure_llvm {
     cd $build_dir
     echo "Starting build LLVM-$llvm_version"
     hash ccache &>/dev/null && ccache_enable=ON || ccache_enable=OFF
+    [ $arch = "aarch64" ] && TARGET=AArch64 || TARGET=X86
     cmake $source_dir                                               \
         -DCMAKE_BUILD_TYPE=Release                                  \
-        -DLLVM_TARGETS_TO_BUILD="X86"                               \
+        -DLLVM_TARGETS_TO_BUILD="$TARGET"                           \
         -DLLVM_ENABLE_BINDINGS=OFF                                  \
         -DLLVM_ENABLE_OCAMLDOC=OFF                                  \
         -DLLVM_ENABLE_WARNINGS=OFF                                  \
         -DLLVM_ENABLE_WERROR=OFF                                    \
         -DCLANG_VENDOR="(VEsoft Inc. Build)"                        \
-        -DLLVM_HOST_TRIPLE=x86_64-vesoft-linux                      \
-        -DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-vesoft-linux            \
+        -DLLVM_HOST_TRIPLE=$arch-vesoft-linux                      \
+        -DLLVM_DEFAULT_TARGET_TRIPLE=$arch-vesoft-linux            \
         -DLLVM_ENABLE_Z3_SOLVER=OFF                                 \
         -DLLVM_CCACHE_BUILD=$ccache_enable                          \
         -DLLVM_ENABLE_TERMINFO=OFF                                  \
@@ -255,7 +257,7 @@ function collect_gcc_installation {
 }
 
 function make_package {
-    exec_file=$root_dir/vesoft-llvm-$llvm_version-$distro-x86_64-glibc-$glibc_version.sh
+    exec_file=$root_dir/vesoft-llvm-$llvm_version-$distro-$arch-glibc-$glibc_version.sh
     echo "Creating self-extractable package $exec_file"
     cat > $exec_file <<EOF
 #! /usr/bin/env bash
@@ -345,7 +347,7 @@ cat > $stage_dir/$install_dir/version-info <<EOF
 Package         : LLVM-$llvm_version
 Distribution    : $distro
 glibc           : $glibc_version
-Arch            : x86_64
+Arch            : $arch
 Vendor          : VEsoft Inc.
 EOF
 

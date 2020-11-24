@@ -66,7 +66,7 @@ gcc_object_dir=$root_dir/gcc-build-$gcc_version
 bu_object_dir=$root_dir/binutils-build-$bu_version
 install_dir=$prefix/vesoft/toolset/gcc/$gcc_version
 logfile=$root_dir/gcc-build-$gcc_version.log
-triplet=x86_64-vesoft-linux
+triplet=$(uname -m)-vesoft-linux
 distro=$(lsb_release -si)
 glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
 
@@ -317,7 +317,7 @@ function usability_test {
 
 # Build a self-extractable package
 function make_package {
-    exec_file=$root_dir/vesoft-gcc-$gcc_version-$distro-x86_64-glibc-$glibc_version.sh
+    exec_file=$root_dir/vesoft-gcc-$gcc_version-$distro-$(uname -m)-glibc-$glibc_version.sh
     echo "Creating self-extractable package $exec_file"
     cat > $exec_file <<EOF
 #! /usr/bin/env bash
@@ -424,7 +424,7 @@ cat > $install_dir/version-info <<EOF
 Package         : GCC $gcc_version
 Distribution    : $distro $(lsb_release -sr)
 glibc           : $glibc_version
-Arch            : x86_64
+Arch            : $(uname -m)
 Vendor          : VEsoft Inc.
 EOF
 
