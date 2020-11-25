@@ -62,7 +62,7 @@ gdb_object_dir=$root_dir/gdb-build-$gdb_version
 install_dir=/opt/vesoft/toolset/gdb/$gdb_version
 stage_dir=$root_dir/stage
 logfile=$root_dir/gdb-build-$gdb_version.log
-triplet=x86_64-vesoft-linux
+triplet=$(uname -m)-vesoft-linux
 distro=$(lsb_release -si)
 glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
 
@@ -234,7 +234,7 @@ function finalize {
 
 # Build a self-extractable package
 function make_package {
-    exec_file=$root_dir/vesoft-gdb-$gdb_version-$distro-x86_64-glibc-$glibc_version.sh
+    exec_file=$root_dir/vesoft-gdb-$gdb_version-$distro-$(uname -m)-glibc-$glibc_version.sh
     echo "Creating self-extractable package $exec_file"
     cat > $exec_file <<EOF
 #! /usr/bin/env bash
@@ -307,7 +307,7 @@ cat > $stage_dir/$install_dir/version-info <<EOF
 Package         : GDB $gdb_version
 Distribution    : $distro $(lsb_release -sr)
 glibc           : $glibc_version
-Arch            : x86_64
+Arch            : $(uname -m)
 Vendor          : VEsoft Inc.
 EOF
 
