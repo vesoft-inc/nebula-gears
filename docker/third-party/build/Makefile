@@ -1,4 +1,9 @@
-tags=centos-6 centos-7 ubuntu-1604 ubuntu-1804 ubuntu-1910 ubuntu-2010
+arch=$(shell uname -m)
+ifeq ($(arch), x86_64)
+tags=$(addsuffix -$(arch), centos-6 centos-7 ubuntu-1604 ubuntu-1804 ubuntu-1910 ubuntu-2010)
+else
+tags=$(addsuffix -$(arch), centos-7 ubuntu-1804)
+endif
 
 all: $(tags)
 
@@ -18,4 +23,4 @@ endif
 
 %:
 	@echo '******************' Build Nebula Third Party For $* '********************'
-	@$(docker_cmd) --rm -it dutor/third-party-build:$* ./build-third-party.sh
+	@$(docker_cmd) --rm -it dutor/third-party-build-$(arch):$* ./build-third-party.sh
