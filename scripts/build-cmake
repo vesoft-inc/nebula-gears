@@ -1,0 +1,118 @@
+#! /usr/bin/env bash
+
+# Copyright (c) 2019 vesoft inc. All rights reserved.
+#
+# This source code is licensed under Apache 2.0 License,
+# attached with Common Clause Condition 1.0, found in the LICENSES directory.
+
+# Usage: build-cmake
+
+# Always use bash
+shell=$(basename $(readlink /proc/$$/exe))
+if [ ! x$shell = x"bash" ]
+then
+    bash $0 $@
+    exit $?
+fi
+
+this_dir=$(dirname $(readlink -f $0))
+
+name=cmake
+version=3.15.7
+tarball=$name-$version.tar.gz
+url=https://cmake.org/files/v3.15/$tarball
+
+cur_dir=$PWD
+root_dir=$cur_dir/toolset-build
+tarballs_dir=$root_dir/downloads
+source_dir=$root_dir/source
+build_dir=$root_dir/$name-build-$version
+stage_dir=$build_dir/stage
+logfile=$root_dir/$name-build-$version.log
+glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
+arch=$(uname -m)
+prefix=/opt/vesoft/toolset
+
+function fetch_cmake() {
+    mkdir -p $tarballs_dir
+    cd $tarballs_dir
+    wget -c $url -O $tarball || exit 1
+    cd $OLDPWD
+}
+
+function unpack_cmake() {
+    mkdir -p $source_dir
+    tar -xf $tarballs_dir/$tarball -C $source_dir || exit 1
+}
+
+function build_cmake() {
+    mkdir -p $build_dir
+    cd $build_dir
+
+    LDFLAGS='-static-libstdc++ -static-libgcc' $source_dir/$name-$version/configure \
+        --prefix=$prefix/cmake --parallel=20 || exit 1
+
+    make -j20 || exit 1
+    mkdir -p $stage_dir
+    make install DESTDIR=$stage_dir
+
+    cd $OLDPWD
+}
+
+function package_cmake() {
+    cd $stage_dir/$prefix
+
+    exec_file=$root_dir/vesoft-$name-$version-$arch-glibc-$glibc_version.sh
+    echo "Creating self-extractable package $exec_file"
+    cat > $exec_file <<EOF
+#! /usr/bin/env bash
+set -e
+
+[[ \$# -ne 0 ]] && prefix=\$(echo "\$@" | sed 's;.*--prefix=(\S*).*;\1;p' -rn)
+prefix=\${prefix:-/opt}/vesoft/toolset
+
+hash xz &> /dev/null || { echo "xz: Command not found"; exit 1; }
+
+mkdir -p \$prefix
+[[ -w \$prefix ]] || { echo "\$prefix: No permission to write"; exit 1; }
+
+archive_offset=\$(awk '/^__start_of_archive__$/{print NR+1; exit 0;}' \$0)
+tail -n+\$archive_offset \$0 | tar --numeric-owner -xJf - -C \$prefix
+
+echo "CMake-$version has been installed to \$prefix/cmake/$version"
+echo "Please run 'source \$prefix/cmake/enable' to start using."
+echo "Please run 'source \$prefix/cmake/disable' to stop using."
+
+exit 0
+
+__start_of_archive__
+EOF
+    tar -cJf - cmake >> $exec_file
+    chmod 0755 $exec_file
+    cd $OLDPWD
+}
+
+fetch_cmake
+unpack_cmake
+build_cmake
+
+cat > $stage_dir/$prefix/cmake/enable <<EOF
+this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+[[ ":\$PATH:" =~ ":\$this_path/bin:" ]] || export PATH=\$this_path/bin:\$PATH
+hash -r
+EOF
+
+cat > $stage_dir/$prefix/cmake/disable <<EOF
+this_path=\$(dirname \$(readlink -f \$BASH_SOURCE))
+export PATH=\$(echo \$PATH | sed "s#\$this_path/bin:##")
+hash -r
+EOF
+
+cat > $stage_dir/$prefix/cmake/version-info <<EOF
+Package         : CMake $version
+glibc           : $glibc_version
+Arch            : $arch
+Vendor          : VEsoft Inc.
+EOF
+
+package_cmake

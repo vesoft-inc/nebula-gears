@@ -22,6 +22,8 @@ install(
         install-llvm
         build-gdb
         install-gdb
+        build-cmake
+        install-cmake
         cxx-compiler-usability-test
         nebula-gears-update
         nebula-gears-uninstall

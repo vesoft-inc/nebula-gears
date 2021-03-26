@@ -56,17 +56,27 @@ then
     exit $exit_status
 fi
 
-
-# We consider two derivatives: Red Hat and Debian
-# Place preset libc versions of each from newer to older
-CentOS_libc_preset=( 2.17 2.12 )
-Debian_libc_preset=( 2.19 2.13 )
-
 selected_distro=
 selected_libc=
 selected_archive=
+this_arch=$(uname -m)
 this_distro=$(lsb_release -si)
 this_libc=$(ldd --version | head -1 | cut -d ')' -f 2 | cut -d ' ' -f 2)
+
+# We consider two derivatives: Red Hat and Debian
+# Place preset libc versions of each from newer to older
+if [[ $this_arch = 'x86_64' ]]
+then
+    CentOS_libc_preset=( 2.17 2.12 )
+    Debian_libc_preset=( 2.19 2.13 )
+elif [[ $this_arch = 'aarch64' ]]
+then
+    CentOS_libc_preset=( 2.17 )
+    Debian_libc_preset=( 2.24 2.19 )
+else
+    echo "Architecture $this_arch is not supported" 1>&2
+    exit 1
+fi
 
 hash wget &>/dev/null || {
     echo "'wget' not fould, please install it first" 1>&2
@@ -85,6 +95,7 @@ wget --help | grep -q '\--show-progress' && \
 [[ "$this_distro" = Debian ]] && selected_distro=Debian
 [[ "$this_distro" = Ubuntu ]] && selected_distro=Debian
 [[ "$this_distro" = LinuxMint ]] && selected_distro=Debian
+[[ "$this_distro" = Kylin ]] && selected_distro=Debian
 
 # backoff distro
 [[ -n $this_distro ]] || selected_distro=Debian
@@ -135,7 +146,7 @@ esac
     exit 1
 }
 
-selected_archive=vesoft-gcc-$version-$selected_distro-$(uname -m)-glibc-$selected_libc.sh
+selected_archive=vesoft-gcc-$version-$selected_distro-$this_arch-glibc-$selected_libc.sh
 
 url=$url_base/$selected_archive
 $download_cmd $url

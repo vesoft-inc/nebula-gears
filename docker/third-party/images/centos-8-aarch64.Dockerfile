@@ -1,5 +1,8 @@
-FROM arm64v8/centos:7
+FROM arm64v8/centos:8
 SHELL ["/bin/bash", "-c"]
+RUN yum update -y
+RUN yum install -y epel-release yum-utils
+RUN yum config-manager --set-enabled powertools
 RUN yum update -y
 RUN yum install -y make \
                    git \
@@ -8,10 +11,8 @@ RUN yum install -y make \
 				   unzip \
 				   xz \
 				   patch \
-				   python3 \
-				   python3-devel \
-				   python \
-				   python-devel \
+				   python2 \
+				   python2-devel \
 				   redhat-lsb-core \
 				   perl-Data-Dumper \
 				   perl-Thread-Queue \
@@ -28,7 +29,8 @@ RUN yum install -y make \
 				   bison \
 				   flex \
 				   gperf \
-				   gettext
+				   gettext \
+                   autoconf-archive
 
 ENV NG_URL=https://raw.githubusercontent.com/dutor/nebula-gears/master/install
 ENV OSS_UTIL_URL='https://gosspublic.alicdn.com/ossutil/1.7.0/ossutilarm64?spm=a2c63.p38356.879954.15.c0942454HuAZDI'
