@@ -1,11 +1,14 @@
 arch=$(shell uname -m)
 ifeq ($(arch), x86_64)
-tags=$(addsuffix -$(arch), centos-6 centos-7 ubuntu-1604 ubuntu-1804 ubuntu-1910)
+tags=$(addsuffix -$(arch), centos-7 centos-8 ubuntu-1604 ubuntu-1804 ubuntu-2004 ubuntu-2010)
 else
 tags=$(addsuffix -$(arch), centos-7 ubuntu-1804)
 endif
 
 all: $(tags)
+
+print:
+	@echo $(tags)
 
 build-%: %.Dockerfile
 	@echo '******************' Build image $* '********************'

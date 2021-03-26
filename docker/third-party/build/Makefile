@@ -1,6 +1,6 @@
 arch=$(shell uname -m)
 ifeq ($(arch), x86_64)
-tags=$(addsuffix -$(arch), centos-6 centos-7 ubuntu-1604 ubuntu-1804 ubuntu-1910 ubuntu-2010)
+tags=$(addsuffix -$(arch), centos-7 ubuntu-1604 ubuntu-1804 ubuntu-2004 ubuntu-2010)
 else
 tags=$(addsuffix -$(arch), centos-7 ubuntu-1804)
 endif
@@ -8,6 +8,9 @@ endif
 all: $(tags)
 
 .PHONY: all
+
+print:
+	@echo $(tags)
 
 oss_endpoint := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^endpoint=(.*);\1;p' -rn $$HOME/.ossutilconfig)
 oss_id := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^accessKeyID=(.*);\1;p' -rn $$HOME/.ossutilconfig)

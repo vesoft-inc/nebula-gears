@@ -1,5 +1,8 @@
-FROM centos:6
+FROM centos:8
 SHELL ["/bin/bash", "-c"]
+RUN yum update -y
+RUN yum install -y epel-release yum-utils
+RUN yum config-manager --set-enabled powertools
 RUN yum update -y
 RUN yum install -y make \
                    git \
@@ -8,8 +11,8 @@ RUN yum install -y make \
 				   unzip \
 				   xz \
 				   patch \
-				   python \
-				   python-devel \
+				   python3 \
+				   python3-devel \
 				   redhat-lsb-core \
 				   perl-Data-Dumper \
 				   perl-Thread-Queue \
@@ -21,6 +24,7 @@ RUN yum install -y make \
 				   cmake \
 				   libtool \
 				   autoconf \
+				   autoconf-archive \
 				   automake \
 				   bison \
 				   flex \
@@ -29,7 +33,7 @@ RUN yum install -y make \
 
 ENV NG_URL=https://raw.githubusercontent.com/dutor/nebula-gears/master/install
 ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64
-ENV PACKAGE_DIR=/usr/src
+ENV PACKAGE_DIR=/usr/src/third-party
 RUN curl -s ${NG_URL} | bash
 
 RUN mkdir -p ${PACKAGE_DIR}

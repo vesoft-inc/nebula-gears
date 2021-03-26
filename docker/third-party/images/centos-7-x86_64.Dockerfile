@@ -8,6 +8,8 @@ RUN yum install -y make \
 				   unzip \
 				   xz \
 				   patch \
+				   python3 \
+				   python3-devel \
 				   python \
 				   python-devel \
 				   redhat-lsb-core \
