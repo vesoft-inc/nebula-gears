@@ -11,8 +11,8 @@ RUN yum install -y make \
 				   unzip \
 				   xz \
 				   patch \
-				   python2 \
-				   python2-devel \
+				   python3 \
+				   python3-devel \
 				   redhat-lsb-core \
 				   perl-Data-Dumper \
 				   perl-Thread-Queue \
