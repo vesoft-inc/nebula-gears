@@ -9,11 +9,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++ -static-libgcc -no-pie")
 
-include_directories(${CMAKE_BINARY_DIR}/external/install/include)
-link_directories(${CMAKE_BINARY_DIR}/external/install/lib)
-link_directories(${CMAKE_BINARY_DIR}/external/install/lib64)
-include_directories(${PROJECT_SOURCE_DIR}/src)
-
 add_compile_options(-O2)
 add_compile_options(-s)
 add_compile_options(-Wall)
@@ -22,13 +17,9 @@ add_compile_options(-Werror)
 #add_compile_options(-fdebug-prefix-map=${PROJECT_SOURCE_DIR}/=)
 
 include(GNUInstallDirs)
-include(ExternalProject)
-include(external/capstone.cmake)
-include(external/clang-build-analyzer.cmake)
 
 add_subdirectory(etc)
 add_subdirectory(scripts)
-add_subdirectory(src)
 add_subdirectory(share)
 
 execute_process(
@@ -56,8 +47,6 @@ add_custom_target(
         make -s install/strip DESTDIR=${stage_dir}
     COMMAND
         mkdir -p ${stage_install_prefix}/${share_dir}
-    COMMAND
-        install -D ${CMAKE_BINARY_DIR}/external/install/bin/clang-build-analyzer ${stage_install_prefix}/bin
     COMMAND
         find ${stage_install_prefix} -type f -fprint ${stage_install_prefix}/${share_dir}/${installed_files_file}
     COMMAND

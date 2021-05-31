@@ -1,21 +1,5 @@
 install(
     FILES
-        core-execname
-        core-bt
-        core-bt-batch
-        least-libc-version
-        pthreads
-        psyscall
-        package-type
-        libc-version
-        mem-total
-        mem-free
-        mem-available
-        physical-cores
-        hyper-threads
-        distro-name
-        distro-fullname
-        distro-version
         build-gcc
         install-gcc
         build-llvm

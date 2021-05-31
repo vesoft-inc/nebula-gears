@@ -1,3 +1,0 @@
-#! /usr/bin/env bash
-
-ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1

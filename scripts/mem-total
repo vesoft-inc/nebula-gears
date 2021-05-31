@@ -1,5 +1,0 @@
-#! /usr/bin/env bash
-
-set -e
-
-awk '/^MemTotal/{ print $2; }' /proc/meminfo 2>/dev/null
