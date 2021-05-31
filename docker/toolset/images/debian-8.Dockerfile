@@ -25,7 +25,7 @@ RUN apt-get install -y make \
                        gettext --force-yes
 RUN apt-get install -y pxz
 
-ENV NG_URL=https://raw.githubusercontent.com/dutor/nebula-gears/master/install
+ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64
 ENV PACKAGE_DIR=/usr/src/nebula-package
 RUN set -o pipefail && curl -s ${NG_URL} | bash

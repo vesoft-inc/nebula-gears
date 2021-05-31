@@ -11,7 +11,7 @@ Before starting, serveral dependencies need to installed:
 The default installation prefix is `/usr/local`, which requires root privilege to write.
 
 ```shell
-$ URL=https://raw.githubusercontent.com/dutor/nebula-gears/master/install
+$ URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 
 # Install with sudo:
 $ sudo bash -s < <(curl -s $URL)
@@ -70,7 +70,7 @@ Currently, _Nebula_ toolset build consists of GCC and LLVM on various Linux plat
   * Debian 7/8 for GCC, and Debian 8/9/10 for LLVM
 
 ```shell
-$ git clone https://github.com/dutor/nebula-gears.git
+$ git clone https://github.com/vesoft-inc/nebula-gears.git
 $ cd nebula-gears/docker/toolset/build
 
 # Build GCC and LLVM for all provided platforms

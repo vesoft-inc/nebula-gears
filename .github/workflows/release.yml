@@ -14,7 +14,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y lsb-core cmake curl wget libelf-dev
-          sudo bash -s < <(curl -s  https://raw.githubusercontent.com/dutor/nebula-gears/master/install)
+          sudo bash -s < <(curl -s  https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install)
           sudo install-gcc --version=9.2.0
       - name: Checkout Code
         uses: actions/checkout@v2

@@ -12,7 +12,7 @@ install_prefix=$(dirname $this_dir)
 share_dir=$install_prefix/share/nebula-gears
 installed_files_file=$share_dir/installed_files
 
-lastest_url=https://github.com/dutor/nebula-gears/releases/latest/download/nebula-gears-installer.sh
+lastest_url=https://github.com/vesoft-inc/nebula-gears/releases/latest/download/nebula-gears-installer.sh
 
 [[ -w $install_prefix ]] || { echo "$install_prefix: No permission to write"; exit 1; }
 

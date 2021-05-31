@@ -27,7 +27,7 @@ RUN yum config-manager --set-enabled PowerTools
 RUN yum update -y
 RUN yum install -y gperf
 
-ENV NG_URL=https://raw.githubusercontent.com/dutor/nebula-gears/master/install
+ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64
 ENV PACKAGE_DIR=/usr/src/nebula-package
 RUN curl -s ${NG_URL} | bash
