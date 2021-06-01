@@ -1,5 +1,7 @@
 install(
     FILES
+        mem-available
+        physical-cores
         build-gcc
         install-gcc
         build-llvm

@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+set -e
+
+available_mem=$(awk '/^MemAvailable/{print $2;}' /proc/meminfo 2>/dev/null)
+[[ -z $available_mem ]] && available_mem=$(awk '/^MemFree|^Buffers|^Cached|^SwapCached/{s+=$2;}END{print s;}' /proc/meminfo 2>/dev/null)
+
+echo $available_mem

@@ -1,4 +1,4 @@
-FROM debian:9
+FROM debian:8
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update
 RUN apt-get install -y make \
@@ -8,7 +8,6 @@ RUN apt-get install -y make \
                        unzip \
                        curl \
                        xz-utils \
-                       pxz \
                        liblzma-dev \
                        python-dev \
                        patch \
@@ -24,6 +23,7 @@ RUN apt-get install -y make \
                        flex \
                        gperf \
                        gettext --force-yes
+RUN apt-get install -y pxz
 
 ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64

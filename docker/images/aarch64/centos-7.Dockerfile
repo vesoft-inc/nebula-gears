@@ -1,4 +1,4 @@
-FROM centos:6
+FROM arm64v8/centos:7
 SHELL ["/bin/bash", "-c"]
 RUN yum update -y
 RUN yum install -y make \
@@ -23,13 +23,12 @@ RUN yum install -y make \
 				   flex \
 				   gperf \
 				   gettext \
-                   centos-release-scl \
                    epel-release
-RUN yum install -y python27
+
 RUN yum install -y pxz || true
 
 ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
-ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64
+ENV OSS_UTIL_URL='https://gosspublic.alicdn.com/ossutil/1.7.0/ossutilarm64?spm=a2c63.p38356.879954.15.c0942454HuAZDI'
 ENV PACKAGE_DIR=/usr/src/nebula-package
 RUN curl -s ${NG_URL} | bash
 
