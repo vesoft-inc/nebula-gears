@@ -29,7 +29,7 @@ RUN yum install -y pxz || true
 
 ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 ENV OSS_UTIL_URL='https://gosspublic.alicdn.com/ossutil/1.7.0/ossutilarm64?spm=a2c63.p38356.879954.15.c0942454HuAZDI'
-ENV PACKAGE_DIR=/usr/src/nebula
+ENV PACKAGE_DIR=/usr/src
 RUN curl -s ${NG_URL} | bash
 
 RUN mkdir -p ${PACKAGE_DIR}
@@ -37,9 +37,6 @@ WORKDIR ${PACKAGE_DIR}
 
 COPY build-gcc.sh ${PACKAGE_DIR}/build-gcc.sh
 RUN chmod +x ${PACKAGE_DIR}/build-gcc.sh
-
-COPY build-gdb.sh ${PACKAGE_DIR}/build-gdb.sh
-RUN chmod +x ${PACKAGE_DIR}/build-gdb.sh
 
 COPY build-llvm.sh ${PACKAGE_DIR}/build-llvm.sh
 RUN chmod +x ${PACKAGE_DIR}/build-llvm.sh

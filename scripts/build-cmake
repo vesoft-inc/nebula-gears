@@ -79,7 +79,7 @@ mkdir -p \$prefix
 archive_offset=\$(awk '/^__start_of_archive__$/{print NR+1; exit 0;}' \$0)
 tail -n+\$archive_offset \$0 | tar --numeric-owner -xJf - -C \$prefix
 
-echo "CMake-$version has been installed to \$prefix/cmake/$version"
+echo "CMake-$version has been installed to \$prefix/cmake"
 echo "Please run 'source \$prefix/cmake/enable' to start using."
 echo "Please run 'source \$prefix/cmake/disable' to stop using."
 

@@ -1,5 +1,5 @@
 arch=$(shell uname -m)
-tags=centos-7 debian-8
+tags=centos-7 debian-9
 
 all: $(tags)
 

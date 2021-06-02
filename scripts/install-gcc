@@ -67,12 +67,12 @@ this_libc=$(ldd --version | head -1 | cut -d ')' -f 2 | cut -d ' ' -f 2)
 # Place preset libc versions of each from newer to older
 if [[ $this_arch = 'x86_64' ]]
 then
-    CentOS_libc_preset=( 2.17 2.12 )
-    Debian_libc_preset=( 2.19 2.13 )
+    CentOS_libc_preset=( 2.17 )
+    Debian_libc_preset=( 2.24 )
 elif [[ $this_arch = 'aarch64' ]]
 then
     CentOS_libc_preset=( 2.17 )
-    Debian_libc_preset=( 2.24 2.19 )
+    Debian_libc_preset=( 2.24 )
 else
     echo "Architecture $this_arch is not supported" 1>&2
     exit 1
@@ -149,6 +149,7 @@ esac
 selected_archive=vesoft-gcc-$version-$selected_distro-$this_arch-glibc-$selected_libc.sh
 
 url=$url_base/$selected_archive
+echo "Downloading $url"
 $download_cmd $url
 [[ $? -ne 0 ]] && {
     echo "Downloading $selected_archive failed" 1>&2

@@ -92,6 +92,7 @@ selected_libc=$(select_libc $this_libc "${libc_preset[@]}")
 selected_archive=vesoft-cmake-$version-$this_arch-glibc-$selected_libc.sh
 
 url=$url_base/$selected_archive
+echo "Downloading $url"
 $download_cmd $url
 [[ $? -ne 0 ]] && {
     echo "Downloading $selected_archive failed" 1>&2

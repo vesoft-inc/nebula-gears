@@ -1,4 +1,4 @@
-FROM debian:8
+FROM debian:9
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update
 RUN apt-get install -y make \
@@ -27,7 +27,7 @@ RUN apt-get install -y pxz
 
 ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64
-ENV PACKAGE_DIR=/usr/src/nebula-package
+ENV PACKAGE_DIR=/usr/src
 RUN set -o pipefail && curl -s ${NG_URL} | bash
 
 RUN mkdir -p ${PACKAGE_DIR}
@@ -35,9 +35,6 @@ WORKDIR ${PACKAGE_DIR}
 
 COPY build-gcc.sh ${PACKAGE_DIR}/build-gcc.sh
 RUN chmod +x ${PACKAGE_DIR}/build-gcc.sh
-
-COPY build-gdb.sh ${PACKAGE_DIR}/build-gdb.sh
-RUN chmod +x ${PACKAGE_DIR}/build-gdb.sh
 
 COPY build-llvm.sh ${PACKAGE_DIR}/build-llvm.sh
 RUN chmod +x ${PACKAGE_DIR}/build-llvm.sh
