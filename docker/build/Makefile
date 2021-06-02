@@ -1,4 +1,5 @@
-tags=centos-6 centos-7 centos-8 debian-7 debian-8 debian-9 debian-10
+arch=$(shell uname -m)
+tags=centos-7 debian-9
 
 all: $(tags)
 
@@ -22,13 +23,13 @@ endif
 %: gcc-% llvm-% gdb-%;
 
 gcc-%:
-	@echo '******************' Build Nebula Toolset/GCC For $* '********************'
-	@$(docker_cmd) --rm -it vesoft/toolset-build:$* ./build-gcc.sh
+	@echo '******************' Build Nebula Toolset/GCC For $*-$(arch) '********************'
+	@$(docker_cmd) --rm -it vesoft/toolset-build:$*-$(arch) ./build-gcc.sh
 
 llvm-%:
-	@echo '******************' Build Nebula Toolset/LLVM For $* '********************'
-	@$(docker_cmd) --rm -it vesoft/toolset-build:$* ./build-llvm.sh
+	@echo '******************' Build Nebula Toolset/LLVM For $*-$(arch) '********************'
+	@$(docker_cmd) --rm -it vesoft/toolset-build:$*-$(arch) ./build-llvm.sh
 
 gdb-%:
-	@echo '******************' Build Nebula Toolset/GDB For $* '********************'
-	@$(docker_cmd) --rm -it vesoft/toolset-build:$* ./build-gdb.sh
+	@echo '******************' Build Nebula Toolset/GDB For $*-$(arch) '********************'
+	@$(docker_cmd) --rm -it vesoft/toolset-build:$*-$(arch) ./build-gdb.sh
