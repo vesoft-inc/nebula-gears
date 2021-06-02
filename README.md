@@ -14,10 +14,10 @@ The default installation prefix is `/usr/local`, which requires root privilege t
 $ URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 
 # Install with sudo:
-$ sudo bash -s < <(curl -s $URL)
+$ sudo bash -s < <(curl -Ls $URL)
 
 # Install with customized prefix:
-$ bash <(curl -s $URL) --prefix=...
+$ bash <(curl -Ls $URL) --prefix=...
 ```
 
 # Tools
