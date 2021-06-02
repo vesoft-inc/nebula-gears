@@ -1,4 +1,4 @@
-FROM debian:8
+FROM arm64v8/debian:9
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update
 RUN apt-get install -y make \
@@ -26,8 +26,8 @@ RUN apt-get install -y make \
 RUN apt-get install -y pxz
 
 ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
-ENV OSS_UTIL_URL=http://gosspublic.alicdn.com/ossutil/1.6.10/ossutil64
-ENV PACKAGE_DIR=/usr/src/nebula-package
+ENV OSS_UTIL_URL='https://gosspublic.alicdn.com/ossutil/1.7.0/ossutilarm64?spm=a2c63.p38356.879954.15.c0942454HuAZDI'
+ENV PACKAGE_DIR=/usr/src/nebula
 RUN set -o pipefail && curl -s ${NG_URL} | bash
 
 RUN mkdir -p ${PACKAGE_DIR}

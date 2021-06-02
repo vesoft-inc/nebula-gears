@@ -1,5 +1,5 @@
 arch=$(shell uname -m)
-tags=centos-7
+tags=centos-7 debian-8
 
 all: $(tags)
 
@@ -7,10 +7,10 @@ all: $(tags)
 
 build-%: $(arch)/%.Dockerfile
 	@echo '******************' Build Image $* '********************'
-	@docker build --no-cache -t vesoft-inc/toolset-build:$*-$(arch) -f $(arch)/$*.Dockerfile .
+	@docker build --no-cache -t vesoft/toolset-build:$*-$(arch) -f $(arch)/$*.Dockerfile .
 
 push-%: build-%
 	@echo '******************' Pushing Image $* '********************'
-	@docker push vesoft-inc/toolset-build:$*-$(arch)
+	@docker push vesoft/toolset-build:$*-$(arch)
 
 %: push-% ;

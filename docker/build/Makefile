@@ -23,12 +23,12 @@ endif
 
 gcc-%:
 	@echo '******************' Build Nebula Toolset/GCC For $* '********************'
-	@$(docker_cmd) --rm -it vesoft-inc/toolset-build:$* ./build-gcc.sh
+	@$(docker_cmd) --rm -it vesoft/toolset-build:$* ./build-gcc.sh
 
 llvm-%:
 	@echo '******************' Build Nebula Toolset/LLVM For $* '********************'
-	@$(docker_cmd) --rm -it vesoft-inc/toolset-build:$* ./build-llvm.sh
+	@$(docker_cmd) --rm -it vesoft/toolset-build:$* ./build-llvm.sh
 
 gdb-%:
 	@echo '******************' Build Nebula Toolset/GDB For $* '********************'
-	@$(docker_cmd) --rm -it vesoft-inc/toolset-build:$* ./build-gdb.sh
+	@$(docker_cmd) --rm -it vesoft/toolset-build:$* ./build-gdb.sh
