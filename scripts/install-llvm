@@ -24,6 +24,7 @@ fi
 
 url_base=https://oss-cdn.nebula-graph.com.cn/toolset
 this_dir=$(dirname $(readlink -f $0))
+this_arch=$(uname -m)
 
 version_files_dir=$this_dir/../share/nebula-gears
 
@@ -143,7 +144,7 @@ esac
     exit 1
 }
 
-selected_archive=vesoft-llvm-$version-$selected_distro-$(uname -m)-glibc-$selected_libc.sh
+selected_archive=vesoft-llvm-$version-$selected_distro-$this_arch-glibc-$selected_libc.sh
 
 url=$url_base/$selected_archive
 echo "Downloading $url"
