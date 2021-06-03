@@ -6,8 +6,6 @@ install(
         install-gcc
         build-llvm
         install-llvm
-        build-gdb
-        install-gdb
         build-cmake
         install-cmake
         cxx-compiler-usability-test
