@@ -101,3 +101,19 @@ $ make debian-9
 
 Note that you could perform the same steps to build for x86_64 and aarch64
 
+
+# Maintain
+```shell
+# To make a release on GitHub
+$ git tag vx.y.z
+$ git push origin vx.y.z
+
+# To update to the lastest version
+$ sudo nebula-gears-update
+
+# To uninstall
+$ sudo nebula-gears-uninstall
+
+# To show all installed files
+$ sudo nebula-gears-show-files
+```
