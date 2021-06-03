@@ -23,7 +23,7 @@ ifneq ($(BUILD_LLVM_VERSIONS),)
 	docker_cmd += -e BUILD_LLVM_VERSIONS=$(BUILD_LLVM_VERSIONS)
 endif
 
-%: gcc-% llvm-% gdb-%;
+%: gcc-% llvm-% ;
 
 gcc-%:
 	@echo '******************' Build Nebula Toolset/GCC For $*-$(arch) '********************'

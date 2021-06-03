@@ -26,7 +26,7 @@ $ bash <(curl -Ls $URL) --prefix=...
 ```shell
 $ install-gcc
 Please specify the version you want to install with --version=x.y.z
-Optional versions are: 5.1.0 5.3.0 5.5.0 6.1.0 6.3.0 6.5.0 7.1.0 7.3.0 7.5.0 8.3.0 9.1.0 9.2.0
+Optional versions are: 7.1.0 7.3.0 7.5.0 8.3.0 9.1.0 9.2.0 10.1.0
 
 # By default GCC will be installed at /opt/vesoft/toolset/gcc/x.y.z
 $ install-gcc --version=9.2.0
@@ -45,7 +45,7 @@ Installation of LLVM is not relocatable, and will be installed at `/opt/vesoft/t
 ```shell
 $ install-llvm
 Please specify the version you want to install with --version=x.y.z
-Optional versions are: 8.0.0 9.0.0
+Optional versions are: 9.0.0
 
 $ install-llvm --version=9.0.0
 ...
@@ -55,33 +55,49 @@ $ install-llvm --version=all
 ```
 
 
-## `install-gdb`
-Installation of GDB is not relocatable, and will be installed at `/opt/vesoft/toolset/gdb/x.y.z`.
+## `install-cmake`
 ```shell
-$ install-gdb --version=8.3
-GDB-8.3 has been installed to /opt/vesoft/toolset/gdb/8.3
-Please run 'source /opt/vesoft/toolset/gdb/8.3/enable' to start using.
-Please run 'source /opt/vesoft/toolset/gdb/8.3/disable' to stop using.
+$ install-cmake
+CMake-3.15.7 has been installed to /opt/vesoft/toolset/cmake
+Please run 'source /opt/vesoft/toolset/cmake/enable' to start using.
+Please run 'source /opt/vesoft/toolset/cmake/disable' to stop using.
 ```
 
-# Build Toolset
-Currently, _Nebula_ toolset build consists of GCC and LLVM on various Linux platforms:
-  * CentOS 6/7 for GCC, and CentOS 6/7/8 for LLVM
-  * Debian 7/8 for GCC, and Debian 8/9/10 for LLVM
+# Build GCC and LLVM
+This requires you have appropriate OSS configurations at `$HOME/.ossutilconfig`.
 
 ```shell
 $ git clone https://github.com/vesoft-inc/nebula-gears.git
-$ cd nebula-gears/docker/toolset/build
+$ cd nebula-gears/docker/build
+
+# Print all supported platforms
+$ make print
+centos-7 debian-9
 
 # Build GCC and LLVM for all provided platforms
 $ make
-
-# Build GCC and LLVM for specific platform
-$ make centos-7
 
 # Only build GCC
 $ make gcc-centos-7
 
 # Build GCC 9.1.0 and 8.3.0, LLVM 9.0.0
-$ make BUILD_GCC_VERSIONS=8.3.0,9.1.0 BUILD_LLVM_VERSIONS=9.0.0 centos-6
+$ make BUILD_GCC_VERSIONS=8.3.0,9.1.0 BUILD_LLVM_VERSIONS=9.0.0 debian-9
 ```
+
+Note that you could perform the same steps to build for x86_64 and aarch64
+
+
+# Build Toolset Docker Images
+This requires you have logged in on the DockerHub.
+```shell
+$ git clone https://github.com/vesoft-inc/nebula-gears.git
+$ cd nebula-gears/docker/images
+
+$ make print
+centos-7 debian-9
+$ make centos-7
+$ make debian-9
+```
+
+Note that you could perform the same steps to build for x86_64 and aarch64
+
