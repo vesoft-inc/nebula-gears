@@ -20,7 +20,7 @@ $ sudo bash -s < <(curl -Ls $URL)
 $ bash <(curl -Ls $URL) --prefix=...
 ```
 
-# Tools
+# Install Toolset
 
 ## `install-gcc`
 ```shell
@@ -63,7 +63,7 @@ Please run 'source /opt/vesoft/toolset/cmake/enable' to start using.
 Please run 'source /opt/vesoft/toolset/cmake/disable' to stop using.
 ```
 
-# Build GCC and LLVM
+# Build Toolset
 This requires you have appropriate OSS configurations at `$HOME/.ossutilconfig`.
 
 ```shell
