@@ -1,9 +1,5 @@
 arch=$(shell uname -m)
-ifeq ($(arch),aarch64)
-	tags=centos-7 debian-9
-else
-	tags=centos-7 debian-8
-endif
+tags=centos-7 debian-8
 
 all: $(tags)
 print:

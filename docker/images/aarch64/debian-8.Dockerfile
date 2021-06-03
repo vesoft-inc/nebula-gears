@@ -1,5 +1,6 @@
-FROM arm64v8/debian:9
+FROM arm64v8/debian:8
 SHELL ["/bin/bash", "-c"]
+RUN echo "deb http://archive.debian.org/debian/ jessie main contrib non-free" > /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get install -y make \
                        git \
@@ -23,7 +24,7 @@ RUN apt-get install -y make \
                        flex \
                        gperf \
                        gettext --force-yes
-RUN apt-get install -y pxz
+RUN apt-get install -y pxz --force-yes
 
 ENV NG_URL=https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install
 ENV OSS_UTIL_URL='https://gosspublic.alicdn.com/ossutil/1.7.0/ossutilarm64?spm=a2c63.p38356.879954.15.c0942454HuAZDI'

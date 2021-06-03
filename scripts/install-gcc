@@ -72,7 +72,7 @@ then
 elif [[ $this_arch = 'aarch64' ]]
 then
     CentOS_libc_preset=( 2.17 )
-    Debian_libc_preset=( 2.24 )
+    Debian_libc_preset=( 2.19 )
 else
     echo "Architecture $this_arch is not supported" 1>&2
     exit 1
