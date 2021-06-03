@@ -1,4 +1,4 @@
-FROM debian:9
+FROM debian:8
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update
 RUN apt-get install -y make \
