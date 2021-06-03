@@ -2,8 +2,11 @@ arch=$(shell uname -m)
 tags=centos-7 debian-9
 
 all: $(tags)
+print:
+	@echo $(tags)
 
 .PHONY: all
+.PHONY: print
 
 oss_endpoint := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^endpoint=(.*);\1;p' -rn $$HOME/.ossutilconfig)
 oss_id := $(shell [[ -f $$HOME/.ossutilconfig ]] && sed 's;^accessKeyID=(.*);\1;p' -rn $$HOME/.ossutilconfig)
@@ -29,7 +32,3 @@ gcc-%:
 llvm-%:
 	@echo '******************' Build Nebula Toolset/LLVM For $*-$(arch) '********************'
 	@$(docker_cmd) --rm -it vesoft/toolset-build:$*-$(arch) ./build-llvm.sh
-
-gdb-%:
-	@echo '******************' Build Nebula Toolset/GDB For $*-$(arch) '********************'
-	@$(docker_cmd) --rm -it vesoft/toolset-build:$*-$(arch) ./build-gdb.sh
