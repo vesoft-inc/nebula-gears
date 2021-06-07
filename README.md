@@ -72,7 +72,7 @@ $ cd nebula-gears/docker/build
 
 # Print all supported platforms
 $ make print
-centos-7 debian-9
+centos-7 debian-8
 
 # Build GCC and LLVM for all provided platforms
 $ make
@@ -81,7 +81,7 @@ $ make
 $ make gcc-centos-7
 
 # Build GCC 9.1.0 and 8.3.0, LLVM 9.0.0
-$ make BUILD_GCC_VERSIONS=8.3.0,9.1.0 BUILD_LLVM_VERSIONS=9.0.0 debian-9
+$ make BUILD_GCC_VERSIONS=8.3.0,9.1.0 BUILD_LLVM_VERSIONS=9.0.0 debian-8
 ```
 
 Note that you could perform the same steps to build for x86_64 and aarch64
@@ -94,9 +94,9 @@ $ git clone https://github.com/vesoft-inc/nebula-gears.git
 $ cd nebula-gears/docker/images
 
 $ make print
-centos-7 debian-9
+centos-7 debian-8
 $ make centos-7
-$ make debian-9
+$ make debian-8
 ```
 
 Note that you could perform the same steps to build for x86_64 and aarch64
