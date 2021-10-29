@@ -4,7 +4,7 @@ llvm_version=10.0.0
 llvm_tarball=llvm-$llvm_version.src.tar.xz
 llvm_url=$url_base/llvmorg-$llvm_version/$llvm_tarball
 
-clang_tarball=cfe-$llvm_version.src.tar.xz
+clang_tarball=clang-$llvm_version.src.tar.xz
 clang_url=$url_base/llvmorg-$llvm_version/$clang_tarball
 
 lld_tarball=lld-$llvm_version.src.tar.xz
