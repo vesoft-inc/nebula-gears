@@ -31,9 +31,9 @@
 *.out
 *.app
 
-build
-
-!docker/*/build
+# build
+# !docker/*/build
 docker/*/build/*-packages
+docker/*/build/*-build
 
 *.tar.xz
