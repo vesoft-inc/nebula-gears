@@ -22,4 +22,4 @@ build-llvm --version=$versions
 
 cp -v toolset-build/vesoft-llvm-*.sh /data
 
-[[ -n $OSS_ENDPOINT ]] && ${this_dir}/oss-upload.sh toolset toolset-build/vesoft-llvm-*.sh
+${this_dir}/oss-upload.sh toolset toolset-build/vesoft-llvm-*.sh
