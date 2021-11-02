@@ -2,5 +2,10 @@
 
 set -e
 
-[[ ! -z "${BUILD_GCC_VERSIONS}" ]] && ./build-gcc.sh
-[[ ! -z "${BUILD_LLVM_VERSIONS}" ]] && ./build-llvm.sh
+if [[ ! -z "${BUILD_GCC_VERSIONS}" ]] && [[ ${BUILD_COMPILER} = "gcc" ]]; then
+    ./build-gcc.sh
+fi
+
+if [[ ! -z "${BUILD_LLVM_VERSIONS}" ]] && [[ ${BUILD_COMPILER} = "llvm" ]]; then
+    ./build-llvm.sh
+fi
