@@ -3,26 +3,26 @@ SHELL ["/bin/bash", "-c"]
 RUN yum update -y
 RUN yum install -y make \
                    git \
-				   m4 \
-				   wget \
-				   unzip \
-				   bzip2 \
-				   xz \
-				   xz-devel \
-				   patch \
-				   python \
-				   python-devel \
-				   redhat-lsb-core \
-				   zlib-devel \
-				   gcc \
-				   gcc-c++ \
-				   libtool \
-				   autoconf \
-				   automake \
-				   bison \
-				   flex \
-				   gperf \
-				   gettext \
+                   m4 \
+                   wget \
+                   unzip \
+                   bzip2 \
+                   xz \
+                   xz-devel \
+                   patch \
+                   python \
+                   python-devel \
+                   redhat-lsb-core \
+                   zlib-devel \
+                   gcc \
+                   gcc-c++ \
+                   libtool \
+                   autoconf \
+                   automake \
+                   bison \
+                   flex \
+                   gperf \
+                   gettext \
                    epel-release
 
 RUN yum install -y pxz || true

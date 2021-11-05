@@ -17,11 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - {"name": "centos", "version": 7}
-          - {"name": "centos", "version": 8}
-          - {"name": "debian", "version": 8}
-          - {"name": "debian", "version": 9}
-          - {"name": "debian", "version": 10}
+          - centos-7
+          - debian-8
         arch:
           - amd64
           - arm64
@@ -45,12 +42,11 @@ jobs:
       - uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/images/buildx/${{ matrix.os.name }}.Dockerfile
+          file: ./docker/images/buildx/${{ matrix.os }}.Dockerfile
           platforms: linux/${{ matrix.arch }}
-          tags: vesoft/toolset-build:${{ matrix.os.name }}-${{ matrix.os.version }}-${{ matrix.arch }}-${{ matrix.compiler.name }}-${{ matrix.compiler.version }}
+          tags: vesoft/toolset-build:${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler.name }}-${{ matrix.compiler.version }}
           push: false
           build-args: |
-            OSVER=${{ matrix.os.version }}
             BUILD_GCC_VERSIONS=${{ matrix.compiler.version }}
             BUILD_LLVM_VERSIONS=${{ matrix.compiler.version }}
             BUILD_COMPILER=${{ matrix.compiler.name }}
