@@ -38,6 +38,8 @@ RUN set -o pipefail && curl -s ${NG_URL} | bash
 RUN mkdir -p ${PACKAGE_DIR}
 WORKDIR ${PACKAGE_DIR}
 
+COPY . ${PACKAGE_DIR}
+
 RUN chmod +x ${PACKAGE_DIR}/docker/images/build-gcc.sh
 RUN chmod +x ${PACKAGE_DIR}/docker/images/build-llvm.sh
 RUN chmod +x ${PACKAGE_DIR}/docker/images/oss-upload.sh
