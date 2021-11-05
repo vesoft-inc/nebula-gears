@@ -33,6 +33,7 @@ jobs:
           - {"name": "llvm", "version": "10.0.0"}
     concurrency:
       group: ${{ matrix.compiler.name }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v1
       - uses: docker/login-action@v1
