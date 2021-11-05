@@ -15,7 +15,7 @@ then
     exit $?
 fi
 
-this_dir=$(dirname $(readlink -f $0))
+this_dir="$(cd "$(dirname "$0")" && pwd)"
 
 [[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version=(\S*).*;\1;p' -rn)
 

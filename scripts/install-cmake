@@ -22,7 +22,7 @@ fi
 
 version=3.15.7
 url_base=https://oss-cdn.nebula-graph.com.cn/toolset
-this_dir=$(dirname $(readlink -f $0))
+this_dir="$(cd "$(dirname "$0")" && pwd)"
 selected_libc=
 selected_archive=
 this_arch=$(uname -m)

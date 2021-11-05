@@ -8,7 +8,7 @@ nebula-gears-update
 
 release="$(lsb_release -si) $(lsb_release -sr)"
 
-this_dir=$(dirname $(readlink -f $0))
+this_dir="$(cd "$(dirname "$0")" && pwd)"
 
 versions=${BUILD_LLVM_VERSIONS:-all}
 
