@@ -15,4 +15,4 @@ build-gcc --version=$versions
 
 cp -v toolset-build/vesoft-gcc-*.sh /data
 
-${this_dir}/oss-upload.sh toolset toolset-build/vesoft-gcc-*.sh
+${this_dir}/oss-upload.sh toolset-yee toolset-build/vesoft-gcc-*.sh
