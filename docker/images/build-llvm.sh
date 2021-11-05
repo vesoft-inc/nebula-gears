@@ -19,7 +19,6 @@ source /opt/vesoft/toolset/cmake/enable
 
 build-llvm --version=$versions
 
-
-cp -v toolset-build/vesoft-llvm-*.sh /data
+[[ -d /data ]] && cp -v toolset-build/vesoft-llvm-*.sh /data/
 
 ${this_dir}/oss-upload.sh toolset-yee toolset-build/vesoft-llvm-*.sh

@@ -31,6 +31,8 @@ jobs:
           - {"name": "gcc", "version": "10.1.0"}
           # - {"name": "llvm", "version": "9.0.0"}
           - {"name": "llvm", "version": "10.0.0"}
+    concurrency:
+      group: ${{ matrix.compiler.name }}
     steps:
       - uses: actions/checkout@v1
       - uses: docker/login-action@v1

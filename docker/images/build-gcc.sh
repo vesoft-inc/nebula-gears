@@ -12,7 +12,6 @@ versions=${BUILD_GCC_VERSIONS:-all}
 
 build-gcc --version=$versions
 
-
-cp -v toolset-build/vesoft-gcc-*.sh /data
+[[ -d /data ]] && cp -v toolset-build/vesoft-gcc-*.sh /data/
 
 ${this_dir}/oss-upload.sh toolset-yee toolset-build/vesoft-gcc-*.sh
