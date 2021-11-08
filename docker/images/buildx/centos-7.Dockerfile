@@ -2,7 +2,6 @@ FROM centos:7
 
 ARG BUILD_LLVM_VERSIONS=""
 ARG BUILD_GCC_VERSIONS=""
-ARG BUILD_COMPILER=""
 
 SHELL ["/bin/bash", "-c"]
 RUN yum update -y
