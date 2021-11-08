@@ -23,7 +23,7 @@ fi
 [[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version=(\S*).*;\1;p' -rn)
 
 url_base=https://oss-cdn.nebula-graph.com.cn/toolset
-this_dir=$(dirname $(readlink -f $0))
+this_dir="$(cd "$(dirname "$0")" && pwd)"
 this_arch=$(uname -m)
 
 version_files_dir=$this_dir/../share/nebula-gears
