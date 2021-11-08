@@ -46,7 +46,7 @@ RUN chmod +x ${PACKAGE_DIR}/docker/images/build-gcc.sh
 RUN chmod +x ${PACKAGE_DIR}/docker/images/build-llvm.sh
 RUN chmod +x ${PACKAGE_DIR}/docker/images/oss-upload.sh
 
-RUN [[ $(uname -u) = "aarch64" ]] && ARCH="arm"; wget -q -O /usr/bin/ossutil64 ${OSS_UTIL_URL}/ossutil${ARCH}64
+RUN [[ $(uname -m) = "aarch64" ]] && ARCH="arm"; wget -q -O /usr/bin/ossutil64 ${OSS_UTIL_URL}/ossutil${ARCH}64
 RUN chmod +x /usr/bin/ossutil64
 
-RUN --mount=type=secret,id=ossutilconfig,target=$HOME/.ossutilconfig ${PACKAGE_DIR}/docker/images/run.sh
+RUN --mount=type=secret,id=ossutilconfig,dst=/root/.ossutilconfig ${PACKAGE_DIR}/docker/images/run.sh
