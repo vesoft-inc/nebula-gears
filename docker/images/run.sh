@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-set -ex
+set -e
 
 this_dir="$(cd "$(dirname "$0")" && pwd)"
 

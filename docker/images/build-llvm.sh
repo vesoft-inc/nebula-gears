@@ -21,4 +21,4 @@ build-llvm --version=$versions
 
 [[ -d /data ]] && cp -v toolset-build/vesoft-llvm-*.sh /data/
 
-${this_dir}/oss-upload.sh toolset-yee toolset-build/vesoft-llvm-*.sh
+${this_dir}/oss-upload.sh toolset toolset-build/vesoft-llvm-*.sh
