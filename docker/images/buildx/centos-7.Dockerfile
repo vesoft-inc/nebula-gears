@@ -27,7 +27,8 @@ RUN yum install -y make \
                    flex \
                    gperf \
                    gettext \
-                   epel-release
+                   epel-release\
+                   texinfo
 
 RUN yum install -y pxz || true
 
