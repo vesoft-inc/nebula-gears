@@ -268,7 +268,6 @@ function configure_binutils {
         --enable-gold                           \
         --enable-plugins                        \
         --enable-ld=default                     \
-        --with-system-zlib                      \
         --build=$triplet                        \
         --host=$triplet                         \
         --target=$triplet                       \
