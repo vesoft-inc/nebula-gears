@@ -67,8 +67,13 @@ bu_object_dir=$root_dir/binutils-build-$bu_version
 install_dir=$prefix/vesoft/toolset/gcc/$gcc_version
 logfile=$root_dir/gcc-build-$gcc_version.log
 triplet=$(uname -m)-vesoft-linux
-distro=$(lsb_release -si)
 glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
+if [[ x$(which lsb_release 2> /dev/null) != x"" ]]
+then
+    distro=$(lsb_release -si)
+else
+    distro=$(cat /etc/*-release | grep PRETTY_NAME | cut -d " " -f 1 | cut -c 14-)
+fi
 
 # Guess number of building jobs
 available_mem_mb=$(( $($this_dir/mem-available)/1024 ))
@@ -152,7 +157,7 @@ function unpack_tarballs {
         tar -xf $mpc_tarball -C $source_dir || exit 1
     fi
 
-    if [[ ! -d $source_dir/binutils-$bu_version ]]
+    if [[ ! -d $source_dir/$bu_name-$bu_version ]]
     then
         echo "Unpacking $bu_tarball..."
         tar -xf $bu_tarball -C $source_dir || exit 1
@@ -216,6 +221,7 @@ function configure_gcc {
         --prefix=$install_dir                   \
         --with-pkgversion="Nebula Graph Build"  \
         --enable-shared                         \
+        --enable-gold                           \
         --enable-threads=posix                  \
         --enable-__cxa_atexit                   \
         --enable-clocale=gnu                    \
@@ -248,6 +254,7 @@ function install_gcc {
     cd $gcc_object_dir
     make -s -j $building_jobs_num install-strip
     [[ $? -ne 0 ]] && { echo "Failed to install GCC" 1>&2; exit 1; }
+    cp $install_dir/bin/gcc $install_dir/bin/cc
     cd $OLDPWD
 }
 
@@ -260,9 +267,10 @@ function clean_gcc {
 function configure_binutils {
     mkdir -p $bu_object_dir
     cd $bu_object_dir
-    $source_dir/binutils-$bu_version/configure  \
+    $source_dir/$bu_name-$bu_version/configure  \
         --prefix=$install_dir                   \
         --with-pkgversion="Nebula Graph Build"  \
+        --with-static-standard-libraries        \
         --disable-shared                        \
         --disable-nls                           \
         --enable-gold                           \
@@ -316,7 +324,7 @@ function usability_test {
 
 # Build a self-extractable package
 function make_package {
-    exec_file=$root_dir/vesoft-gcc-$gcc_version-$distro-$(uname -m)-glibc-$glibc_version.sh
+    exec_file=$root_dir/vesoft-gcc-$gcc_version-bu-$bu_version-$distro-$(uname -m)-glibc-$glibc_version.sh
     echo "Creating self-extractable package $exec_file"
     cat > $exec_file <<EOF
 #! /usr/bin/env bash
