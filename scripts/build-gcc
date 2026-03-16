@@ -71,8 +71,10 @@ glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
 if [[ x$(which lsb_release 2> /dev/null) != x"" ]]
 then
     distro=$(lsb_release -si)
+    distro_ver=$(lsb_release -sr)
 else
     distro=$(cat /etc/*-release | grep PRETTY_NAME | cut -d " " -f 1 | cut -c 14-)
+    distro_ver=$(cat /etc/*-release | grep VERSION_ID | cut -d "\"" -f 2)
 fi
 
 # Guess number of building jobs
@@ -429,7 +431,7 @@ EOF
 
 cat > $install_dir/version-info <<EOF
 Package         : GCC $gcc_version
-Distribution    : $distro $(lsb_release -sr)
+Distribution    : $distro $distro_ver
 glibc           : $glibc_version
 Arch            : $(uname -m)
 Vendor          : VEsoft Inc.
