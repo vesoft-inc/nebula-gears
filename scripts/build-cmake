@@ -18,9 +18,9 @@ fi
 this_dir="$(cd "$(dirname "$0")" && pwd)"
 
 name=cmake
-version=3.15.7
+version=3.29.9
 tarball=$name-$version.tar.gz
-url=https://cmake.org/files/v3.15/$tarball
+url=https://cmake.org/files/v3.29/$tarball
 
 cur_dir=$PWD
 root_dir=$cur_dir/toolset-build
@@ -31,7 +31,9 @@ stage_dir=$build_dir/stage
 logfile=$root_dir/$name-build-$version.log
 glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
 arch=$(uname -m)
-prefix=/opt/vesoft/toolset
+
+[[ $# -ne 0 ]] && prefix=$(echo "$@" | sed 's;.*--prefix=(\S*).*;\1;p' -rn)
+prefix=${prefix:-/opt/vesoft/toolset}
 
 function fetch_cmake() {
     mkdir -p $tarballs_dir

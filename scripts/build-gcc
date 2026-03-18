@@ -326,7 +326,7 @@ function usability_test {
 
 # Build a self-extractable package
 function make_package {
-    exec_file=$root_dir/vesoft-gcc-$gcc_version-bu-$bu_version-$distro-$(uname -m)-glibc-$glibc_version.sh
+    exec_file=$root_dir/vesoft-gcc-$gcc_version-$distro-$(uname -m)-glibc-$glibc_version.sh
     echo "Creating self-extractable package $exec_file"
     cat > $exec_file <<EOF
 #! /usr/bin/env bash
