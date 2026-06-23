@@ -67,8 +67,15 @@ bu_object_dir=$root_dir/binutils-build-$bu_version
 install_dir=$prefix/vesoft/toolset/gcc/$gcc_version
 logfile=$root_dir/gcc-build-$gcc_version.log
 triplet=$(uname -m)-vesoft-linux
-distro=$(lsb_release -si)
 glibc_version=$(ldd --version | head -1 | cut -d ' ' -f4 | cut -d '-' -f1)
+if [[ x$(which lsb_release 2> /dev/null) != x"" ]]
+then
+    distro=$(lsb_release -si)
+    distro_ver=$(lsb_release -sr)
+else
+    distro=$(cat /etc/*-release | grep PRETTY_NAME | cut -d " " -f 1 | cut -c 14-)
+    distro_ver=$(cat /etc/*-release | grep VERSION_ID | cut -d "\"" -f 2)
+fi
 
 # Guess number of building jobs
 available_mem_mb=$(( $($this_dir/mem-available)/1024 ))
@@ -152,7 +159,7 @@ function unpack_tarballs {
         tar -xf $mpc_tarball -C $source_dir || exit 1
     fi
 
-    if [[ ! -d $source_dir/binutils-$bu_version ]]
+    if [[ ! -d $source_dir/$bu_name-$bu_version ]]
     then
         echo "Unpacking $bu_tarball..."
         tar -xf $bu_tarball -C $source_dir || exit 1
@@ -216,6 +223,7 @@ function configure_gcc {
         --prefix=$install_dir                   \
         --with-pkgversion="Nebula Graph Build"  \
         --enable-shared                         \
+        --enable-gold                           \
         --enable-threads=posix                  \
         --enable-__cxa_atexit                   \
         --enable-clocale=gnu                    \
@@ -248,6 +256,7 @@ function install_gcc {
     cd $gcc_object_dir
     make -s -j $building_jobs_num install-strip
     [[ $? -ne 0 ]] && { echo "Failed to install GCC" 1>&2; exit 1; }
+    cp $install_dir/bin/gcc $install_dir/bin/cc
     cd $OLDPWD
 }
 
@@ -260,15 +269,15 @@ function clean_gcc {
 function configure_binutils {
     mkdir -p $bu_object_dir
     cd $bu_object_dir
-    $source_dir/binutils-$bu_version/configure  \
+    $source_dir/$bu_name-$bu_version/configure  \
         --prefix=$install_dir                   \
         --with-pkgversion="Nebula Graph Build"  \
+        --with-static-standard-libraries        \
         --disable-shared                        \
         --disable-nls                           \
         --enable-gold                           \
         --enable-plugins                        \
         --enable-ld=default                     \
-        --with-system-zlib                      \
         --build=$triplet                        \
         --host=$triplet                         \
         --target=$triplet                       \
@@ -422,7 +431,7 @@ EOF
 
 cat > $install_dir/version-info <<EOF
 Package         : GCC $gcc_version
-Distribution    : $distro $(lsb_release -sr)
+Distribution    : $distro $distro_ver
 glibc           : $glibc_version
 Arch            : $(uname -m)
 Vendor          : VEsoft Inc.
