@@ -26,7 +26,7 @@ $ bash <(curl -Ls $URL) --prefix=...
 ```shell
 $ install-gcc
 Please specify the version you want to install with --version=x.y.z
-Optional versions are: 7.1.0 7.3.0 7.5.0 8.3.0 9.1.0 9.2.0 10.1.0
+Optional versions are: 7.1.0 7.3.0 7.5.0 8.3.0 9.1.0 9.2.0 9.3.0 9.4.0 9.5.0 10.1.0 11.2.0 13.4.0
 
 # By default GCC will be installed at /opt/vesoft/toolset/gcc/x.y.z
 $ install-gcc --version=9.2.0
@@ -45,7 +45,7 @@ Installation of LLVM is not relocatable, and will be installed at `/opt/vesoft/t
 ```shell
 $ install-llvm
 Please specify the version you want to install with --version=x.y.z
-Optional versions are: 9.0.0
+Optional versions are: 9.0.0 10.0.0
 
 $ install-llvm --version=9.0.0
 ...

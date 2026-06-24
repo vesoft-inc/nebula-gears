@@ -29,7 +29,7 @@ execute_process(
 )
 set(package_name nebula-gears)
 configure_file(
-    ${CMAKE_SOURCE_DIR}/aux/self-extractable.sh.in
+    ${CMAKE_SOURCE_DIR}/packaging/self-extractable.sh.in
     ${CMAKE_BINARY_DIR}/${package_name}-installer-meta.sh
     @ONLY
 )
