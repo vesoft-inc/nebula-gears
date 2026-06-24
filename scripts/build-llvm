@@ -209,6 +209,10 @@ function configure_llvm {
     echo "Starting build LLVM-$llvm_version"
     hash ccache &>/dev/null && ccache_enable=ON || ccache_enable=OFF
     [ $arch = "aarch64" ] && TARGET=AArch64 || TARGET=X86
+    extra_runtimes_opt=""
+    if [[ $llvm_version == 10.* ]]; then
+        extra_runtimes_opt='-DLLVM_ENABLE_RUNTIMES=openmp'
+    fi
     cmake $source_dir                                               \
         -DCMAKE_BUILD_TYPE=Release                                  \
         -DLLVM_TARGETS_TO_BUILD="$TARGET"                           \
