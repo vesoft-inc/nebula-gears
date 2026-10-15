@@ -8,16 +8,16 @@ on:
 jobs:
   build:
     name: Release
-    runs-on: ubuntu-latest
+    # The GCC 9.2.0 toolset's linker is incompatible with Ubuntu 24.04 system libraries.
+    runs-on: ubuntu-22.04
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
       - name: Prepare Environment
         run: |
           sudo apt-get update
           sudo apt-get install -y lsb-release cmake curl wget libelf-dev
-          sudo bash -s < <(curl -s  https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install)
-          sudo install-gcc --version=9.2.0
-      - name: Checkout Code
-        uses: actions/checkout@v2
+          sudo bash ./scripts/install-gcc --version=9.2.0
       - name: Build project
         run: |
           source /opt/vesoft/toolset/gcc/9.2.0/enable
