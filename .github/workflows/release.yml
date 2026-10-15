@@ -13,7 +13,7 @@ jobs:
       - name: Prepare Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y lsb-core cmake curl wget libelf-dev
+          sudo apt-get install -y lsb-release cmake curl wget libelf-dev
           sudo bash -s < <(curl -s  https://raw.githubusercontent.com/vesoft-inc/nebula-gears/master/install)
           sudo install-gcc --version=9.2.0
       - name: Checkout Code
