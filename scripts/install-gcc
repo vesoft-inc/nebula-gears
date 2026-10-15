@@ -22,7 +22,7 @@ fi
 
 [[ $# -ne 0 ]] && version=$(echo "$@" | sed 's;.*--version=(\S*).*;\1;p' -rn)
 
-url_base=https://oss-cdn.nebula-graph.com.cn/toolset
+url_base=https://github.com/vesoft-inc/nebula-gears/releases/download/gcc-archive
 this_dir="$(cd "$(dirname "$0")" && pwd)"
 
 version_files_dir=$this_dir/../share/nebula-gears
