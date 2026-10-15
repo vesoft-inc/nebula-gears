@@ -6,10 +6,9 @@ set -o pipefail
 lastest_url=https://github.com/vesoft-inc/nebula-gears/releases/latest/download/nebula-gears-installer.sh
 
 echo "Start downloading lastest nebula-gears..."
-tmpname=/tmp/nebula-gears-installer-latest.sh
-rm -rf
-curl -Ls $lastest_url -# -o $tmpname
+tmpname=$(mktemp /tmp/nebula-gears-installer.XXXXXX)
+trap 'rm -f "$tmpname"' EXIT
+curl -fLSs "$lastest_url" -o "$tmpname"
 
 echo "Start installing lastest nebula-gears..."
-bash $tmpname $@
-rm -f $tmpname
+bash "$tmpname" "$@"
